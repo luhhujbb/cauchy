@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.1"
+(defproject cauchy "0.1.0"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
@@ -21,6 +21,7 @@
                  [indigenous "0.1.0"]
                  [bultitude "0.2.6"]
                  [sigmund "0.1.1" :exclusions [log4j sigar/sigar-native-deps]]
-                 [stask/sigar-native-deps "1.6.4"]]
+                 [stask/sigar-native-deps "1.6.4"]
+                 [cheshire "5.4.0"]]
   :aot [puppetlabs.trapperkeeper.main]
   :main puppetlabs.trapperkeeper.main)
