@@ -21,7 +21,6 @@
                  [indigenous "0.1.0"]
                  [bultitude "0.2.6"]
                  [sigmund "0.1.1" :exclusions [log4j sigar/sigar-native-deps]]
-                 [stask/sigar-native-deps "1.6.4"]
-                 [cheshire "5.5.0"]]
-  :aot [puppetlabs.trapperkeeper.main cheshire.core]
+                 [stask/sigar-native-deps "1.6.4"]]
+  :aot [puppetlabs.trapperkeeper.main]
   :main puppetlabs.trapperkeeper.main)
