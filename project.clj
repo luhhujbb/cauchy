@@ -16,6 +16,7 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [org.slf4j/log4j-over-slf4j "1.7.12"]
                  [riemann-clojure-client "0.3.2"]
+                 [clj-http "1.0.1"]
                  [jarohen/chime "0.1.6"]
                  [puppetlabs/trapperkeeper "1.1.1"]
                  [indigenous "0.1.0"]
