@@ -18,9 +18,11 @@
                  [riemann-clojure-client "0.4.2"]
                  [jarohen/chime "0.1.9"]
                  [puppetlabs/trapperkeeper "1.3.0"]
+                 [cheshire "5.5.0"]
+                 [clj-http "2.1.0"]
                  [indigenous "0.1.0"]
                  [bultitude "0.2.8"]
                  [sigmund "0.1.1" :exclusions [log4j sigar/sigar-native-deps]]
                  [stask/sigar-native-deps "1.6.4"]]
-  :aot [puppetlabs.trapperkeeper.main]
+  :aot :all
   :main puppetlabs.trapperkeeper.main)
