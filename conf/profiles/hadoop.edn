@@ -1,12 +1,7 @@
 {:jobs
- {:hbase
-   ;; for master servers
-  {"master"  {:interval 30
-              :job-ns "cauchy.jobs.hadoop"
-              :job-fn "master"
-              :args [{:host "localhost" :port "50070"}]}
-   ;; for region server
-    "regionserver"   {:interval 30
-                      :job-ns "cauchy.jobs.hadoop"
-                      :job-fn "regionserver"
-                      :args [{:host "localhost" :port "50070"}]}}}}
+ {:hadoop
+  {"namenode"
+    {:interval 30
+     :job-ns "cauchy.jobs.hadoop"
+     :job-fn "namenode"
+     :args [{:host "localhost" :port "50070" :period 30}]}}}}

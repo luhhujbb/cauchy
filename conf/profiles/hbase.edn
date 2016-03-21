@@ -1,0 +1,12 @@
+{:jobs
+      {:hbase
+        ;; for master servers
+       {"master"  {:interval 30
+                   :job-ns "cauchy.jobs.hbase"
+                   :job-fn "master"
+                   :args [{:host "localhost" :port "16010"  :period 30}]}
+        ;; for region server
+         "regionserver"   {:interval 30
+                           :job-ns "cauchy.jobs.hbase"
+                           :job-fn "regionserver"
+                           :args [{:host "localhost" :port "16030" :period 30}]}}}}
