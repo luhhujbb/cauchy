@@ -2,9 +2,10 @@
   (:require [clojure.tools.logging :as log]
             [chime :as chime]
             [clj-time.core :as time]
-            [clj-time.periodic :as periodic]
-            [puppetlabs.trapperkeeper.core :refer [defservice]]
-            [puppetlabs.trapperkeeper.services :refer [service-context]]))
+            [clj-time.periodic :as periodic]))
+
+(def job-registry (atom {}))
+(def fuzziness (atom 0.5))
 
 (defn- check-call
   [{:keys [label active interval job-fn] :as job}]
@@ -28,8 +29,7 @@
   true)
 
 (defn do-schedule
-  [{:keys [job-registry fuzziness] :as ctx}
-   {:keys [label active interval job-fn] :as job}]
+  [{:keys [label active interval job-fn] :as job}]
   (when (check-call job)
     (when-let [stopfn (get @job-registry label)]
       ;; stop scheduling
@@ -39,7 +39,7 @@
       (log/info "deleted job" label))
 
     (when active
-      (let [fuzz (+ 2 (rand-int (* interval fuzziness)))
+      (let [fuzz (+ 2 (rand-int (* interval @fuzziness)))
             startdate (time/plus (time/now)
                                  (time/seconds fuzz))
             ev-seq (periodic/periodic-seq
@@ -51,33 +51,7 @@
         (log/info "added job" label)))))
 
 (defn clear-scheduler
-  [{:keys [job-registry fuzziness] :as ctx}]
+  []
   (doseq [[label stopfn] @job-registry]
     (stopfn))
   (reset! job-registry {}))
-
-;;;;;;;;;;;;;;;;;
-;;;; Service ;;;;
-;;;;;;;;;;;;;;;;;
-
-;; A protocol that defines what functions our service will provide
-(defprotocol SchedulerService
-  (schedule [this job])
-  (clear [this]))
-
-(defservice scheduler-service
-  SchedulerService
-  ;; dependencies
-  [[:ConfigService get-in-config]]
-  ;; Lifecycle functions that we implement
-  (init [this context]
-        (let [conf (get-in-config [:scheduler])]
-          (log/info "Scheduler Service initializing with conf" conf)
-          (assoc context
-            :job-registry (atom {})
-            :fuzziness (:fuzziness conf 0.5))))
-  ;; implement our protocol functions
-  (schedule [this job]
-            (do-schedule (service-context this) job))
-  (clear [this]
-         (clear-scheduler (service-context this))))

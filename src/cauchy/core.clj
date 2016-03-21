@@ -1,9 +1,14 @@
 (ns cauchy.core
+  (:import [java.io File])
   (:require [clojure.tools.logging :as log]
             [bultitude.core :as bult]
             [indigenous.core :as indi]
-            [puppetlabs.trapperkeeper.core :refer [defservice]]
-            [puppetlabs.trapperkeeper.services :refer [service-context]]))
+            [cauchy.scheduler :as sch]
+            [cauchy.output.riemann :as rn]
+            [clojure.string :as str])
+  (:gen-class))
+
+(def locker (future "Cauchy successfully started"))
 
 (defn load-sigar-native
   []
@@ -49,58 +54,92 @@
     ;; anonymous function defined in-line.
     (fn [] (apply (eval func) args))))
 
-;; A protocol that defines what functions our service will provide
-(defprotocol CauchyService
-  (reload [this]))
 
-(defservice cauchy-service
-  CauchyService
-  ;; dependencies
-  [[:ConfigService get-in-config]
-   [:SchedulerService schedule clear]
-   [:SenderService send!]]
 
-  ;; Lifecycle functions that we implement
-  (start [this context]
-         (let [profiles (get-in-config [:profiles])
-               all-jobs (get-in-config [:jobs])
-               jobs (->> profiles
-                         (reduce (fn [acc profile]
-                                   (conj acc (get all-jobs profile)))
-                                 [])
-                         (apply merge))
-               defaults (assoc (get-in-config [:defaults])
-                          :host (.. java.net.InetAddress
-                                    getLocalHost
-                                    getHostName))]
-           (load-sigar-native)
-           (log/info "Cauchy Service start with jobs" jobs)
 
-           (->> jobs
-                (map (fn [[label {:keys [interval job-ns job-fn args]
-                                   :as job}]]
-                       (log/info "Scheduling job" job)
-                       (let [active (get job :active true)
-                             job-thunk (mk-fun job-ns job-fn args)
-                             job-fn #(try
-                                       (->> (job-thunk)
-                                            (format-output defaults label job)
-                                            (map send!)
-                                            (doall))
-                                       (catch Exception e
-                                         (log/error e "Job" label "failed")))]
-                         {:label label
-                          :active active
-                          :interval interval
-                          :job-fn job-fn})))
-                (map schedule)
-                (doall))
-           {} ;; context map
-           ))
 
-  (stop [this context]
-        (clear))
+(defn clj-or-edn?
+"Indicate if the string is a path for a clj or edn file"
+ [str]
+ (let [file-pattern #".*\.(?:clj|edn)"]
+   (if-not (nil? (re-matches file-pattern str) )
+    true
+    false)))
 
-  ;; implement our protocol functions
-  (reload [this]
-          (log/error "TODO reload")))
+(defn load-dir
+  "Do like load-file but with all clj or edn file in dir"
+ [path]
+ (let [file-list (.listFiles (File. path))
+       file-pattern #".*\.(?:clj|edn)"]
+     (reduce (fn
+                [acc file-path]
+                (merge-with merge acc (load-file file-path)))
+              {}
+              (filter
+                (fn [val](not (nil? val)))
+                (map
+                  (fn [file] (re-matches file-pattern (.getAbsolutePath file)))
+                  file-list)))))
+
+(defn load-conf
+  "load all clojure files (edn or clj) and merge them into a single map"
+  [conf-paths]
+    (let [files (str/split conf-paths #",")]
+      (reduce (fn [acc file-path]
+                (if (clj-or-edn? file-path)
+                  (merge-with merge acc (load-file file-path))
+                  (merge-with merge acc (load-dir file-path)))) {} files)))
+
+
+(defn start!
+  "main start function"
+  [conf]
+       (let [profiles (:profiles conf)
+             all-jobs (:jobs conf)
+             jobs (->> profiles
+                       (reduce (fn [acc profile]
+                                 (conj acc (get all-jobs profile)))
+                               [])
+                       (apply merge))
+             defaults (assoc (:defaults conf)
+                        :host (.. java.net.InetAddress
+                                  getLocalHost
+                                  getHostName))]
+         (rn/init! conf)      
+         (load-sigar-native)
+         (log/info "Cauchy Service start with jobs" jobs)
+
+         (->> jobs
+              (map (fn [[label {:keys [interval job-ns job-fn args]
+                                 :as job}]]
+                     (log/info "Scheduling job" job)
+                     (let [active (get job :active true)
+                           job-thunk (mk-fun job-ns job-fn args)
+                           job-fn #(try
+                                     (->> (job-thunk)
+                                          (format-output defaults label job)
+                                          (map rn/send!)
+                                          (doall))
+                                     (catch Exception e
+                                       (log/error e "Job" label "failed")))]
+                       {:label label
+                        :active active
+                        :interval interval
+                        :job-fn job-fn})))
+              (map sch/do-schedule)
+              (doall))
+         (log/info @locker)
+         (fn []
+           (sch/clear-scheduler)
+           (shutdown-agents))
+         ))
+
+(defn -main
+  "main"
+  ([conf-files]
+     (let [stop-fn (start! (load-conf conf-files))]
+      (.addShutdownHook (Runtime/getRuntime)
+                       (proxy [Thread] []
+                         (run []
+                           (log/info "Shutting down everything")
+                           (stop-fn)))))))
