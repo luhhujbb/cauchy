@@ -14,6 +14,7 @@
         (:body (http/get url {:as :json}))))
 
 (defn filter-stats
+  "A retrieve a specific bean from a jmx json"
 	[stats mygroup]
 		(first (filter #(= (:name %) mygroup) (:beans stats))))
 
@@ -30,11 +31,11 @@
   (let [req-per-sec (per-sec master-last-req-count (:clusterRequests input) period)]
     (if (= (:tag.isActiveMaster input) "true")
       [{:service "master" :metric 1}
-       {:service "live_regionservers" :metric (:numRegionServers input)}
-       {:service "dead_regionservers" :metric (:numDeadRegionServers input)}
-       {:service "total_requests" :metric (:clusterRequests input)}
-       {:service "total_request_sec" :metric req-per-sec}
-       {:service "region_load" :metric (:averageLoad input)}]
+       {:service "cluster.live_regionservers" :metric (:numRegionServers input)}
+       {:service "cluster.dead_regionservers" :metric (:numDeadRegionServers input)}
+       {:service "req.total_requests" :metric (:clusterRequests input)}
+       {:service "req.total_request_sec" :metric req-per-sec}
+       {:service "cluster.region_load" :metric (:averageLoad input)}]
       [{:service "master" :metric 0}])))
 
 (defn jvm-state
