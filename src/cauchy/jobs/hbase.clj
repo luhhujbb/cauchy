@@ -49,11 +49,12 @@
    {:service "gc.avg_time" :metric (if-not (= 0 (:GcCount input)) (/ (:GcTimeMillis input) (:GcCount input)) 0)}])
 
 (defn master
-  [{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
+  ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
   (let [metrics (fetch-metrics host port)
         input-master (filter-stats metrics "Hadoop:service=HBase,name=Master,sub=Server")
         input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
   (into [] (concat (master-cluster-state input-master period) (jvm-state input-jvm period)))))
+  ([] master {}))
 
 
 (defn regionserver-state
@@ -75,8 +76,9 @@
    {:service "req.slow.put" :metric (:slowPutCount input)}]))
 
 (defn regionserver
-  [{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
+  ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
   (let [metrics (fetch-metrics host port)
         input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
         input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
   (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period)))))
+  ([] regionserver {}))
