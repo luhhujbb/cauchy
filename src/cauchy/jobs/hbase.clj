@@ -50,7 +50,7 @@
 
 (defn master
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
-  (let [metrics (fetch-metrics host port)
+  (let [metrics (fetch-metrics conf)
         input-master (filter-stats metrics "Hadoop:service=HBase,name=Master,sub=Server")
         input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
   (into [] (concat (master-cluster-state input-master period) (jvm-state input-jvm period)))))
