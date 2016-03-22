@@ -1,5 +1,6 @@
 (ns cauchy.jobs.hadoop
   (:require [clj-http.client :as http]
+            [clojure.tools.logging :as log]
             [cheshire.core :as json]))
 
 (defn fetch-metrics
@@ -26,7 +27,7 @@
    {:service "nodes.decom" :metric (count (json/parse-string (:DecomNodes input)))}])
 
 (defn jvm-state
-  [input period]
+  [input]
   [{:service "mem.non_heap_max" :metric (:MemNonHeapMaxM input)}
    {:service "mem.non_heap_used" :metric (:MemNonHeapUsedM input)}
    {:service "mem.heap_max" :metric (:MemMaxM input)}
@@ -39,6 +40,6 @@
    ([{:keys [host port period] :or {host "localhost" port 50070} :as conf}]
    (let [metrics (fetch-metrics conf)
          input-namenode (filter-stats metrics "Hadoop:service=NameNode,name=NameNodeInfo")
-         input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
-   (into [] (concat (namenode-cluster-info input-namenode period) (jvm-state input-jvm period)))))
+         input-jvm (filter-stats metrics "Hadoop:service=NameNode,name=JvmMetrics")]
+   (into [] (concat (namenode-cluster-info input-namenode) (jvm-state input-jvm)))))
    ([] namenode {}))
