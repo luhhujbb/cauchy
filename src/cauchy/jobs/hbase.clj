@@ -77,7 +77,7 @@
 
 (defn regionserver
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
-  (let [metrics (fetch-metrics host port)
+  (let [metrics (fetch-metrics conf)
         input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
         input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
   (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period)))))
