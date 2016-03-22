@@ -18,6 +18,7 @@
                  [org.slf4j/slf4j-log4j12 "1.7.19"]
                  [org.slf4j/jcl-over-slf4j "1.7.19"]
                  [log4j/log4j "1.2.17"]
+                 [log4j/apache-log4j-extras "1.2.17"]
                  [riemann-clojure-client "0.4.2"]
                  [jarohen/chime "0.1.9"]
                  [cheshire "5.5.0"]
