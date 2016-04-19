@@ -1,0 +1,5 @@
+{:jobs
+      {:uberfeedr
+       {"db_stats"  {:interval 30
+                   :job-ns "cauchy.jobs.uberfeedr"
+                   :job-fn "uberfeedr-metrics"}}}}
