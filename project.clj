@@ -29,3 +29,4 @@
                  [stask/sigar-native-deps "1.6.4"]]
   :aot :all
   :main cauchy.core)
+ ;; :main cauchy.jobs.uberfeedr)
