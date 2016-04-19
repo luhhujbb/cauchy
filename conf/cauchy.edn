@@ -1,5 +1,5 @@
-{:global {:logging-config "conf/logging.xml"}
- :riemann {:host "riemann-i-a0254b44.infra.dev.aws.rtgi.eu"}
+{:global {:logging-config "/Users/pguillebert/cauchy/conf/logging.xml"}
+ :riemann {:host "localhost"}
  :defaults {:tags ["devel" "appfoo"]}
- :profiles [:base :uberfeedr]
+ :profiles [:base]
 }
