@@ -1,7 +1,8 @@
 (ns cauchy.jobs.health
   (:require [cauchy.jobs.utils :as utils]
             [clojure.string :as str]
-            [sigmund.core :as sig]))
+            [sigmund.core :as sig])
+  (:import [java.util ConcurrentModificationException]))
 
 (def total-mem (:total (sig/os-memory)))
 
@@ -77,12 +78,15 @@
 (defn disk
   ([tconf]
    (let [virtual-fses ["/dev" "/sys" "/proc" "/run"]]
-     (->> (sig/fs-devices)
+     (try
+       (->> (sig/fs-devices)
           (remove (fn [{:keys [^String dir-name] :as entry}]
                     (some #(.startsWith dir-name %)
                           virtual-fses)))
           (map #(disk-entry tconf %))
-          (flatten))))
+          (flatten))
+          (catch ConcurrentModificationException e
+            {}))))
   ([] (disk {})))
 
 (defn process
