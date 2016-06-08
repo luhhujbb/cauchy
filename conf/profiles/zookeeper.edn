@@ -1,0 +1,7 @@
+{:jobs
+ {:zookeeper
+  {"zookeeper"
+    {:interval 30
+     :job-ns "cauchy.jobs.zookeeper"
+     :job-fn "zookeeper-health"
+     :args [{:host "localhost" :port "2181"}]}}}}
