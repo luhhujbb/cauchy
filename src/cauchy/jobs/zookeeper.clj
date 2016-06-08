@@ -7,13 +7,13 @@
 
 (defn parse-mntr-line
   [line]
-  (let [split-line (str/split line #"\t")
-        key (get split-line 0)
-        value (try
-                (Long/parseLong  (get split-line 1))
-                (catch Exception e
-                  (get split-line 1)))]
-    {:service key :metric value}))
+  (try
+    (let [split-line (str/split line #"\t")
+          key (get split-line 0)
+          value (Long/parseLong  (get split-line 1))]
+          {:service key :metric value})
+    (catch Exception e
+      nil)))
 
 (defn get-zookeeper-metrics!
   [host port]
@@ -24,7 +24,7 @@
       (write-to @socket "mntr")
       (let [data (read-lines @socket)
             ;;format to riemann metrcis
-            data* (into [] (doall (map parse-mntr-line data)))]
+            data* (into [] (filter (fn [x] (not (nil? x))) (doall (map parse-mntr-line data))))]
         (close-socket @socket)
         ;;send metrics
         data*)
