@@ -30,10 +30,13 @@
    ([{:keys [protocol host port thresholds] :as conf}]
       (let [thresholds (merge-with merge default-delay-threshold thresholds)
             delay (get-tweet-delay conf)
-            sstate (if-not (= -1 delay)
-                    (get-state-with-threshold (get thresholds "tweet-powertrack-delay") delay)
+            delay* (if-not (or (= -1 delay) (= 0 delay))
+                    delay
+                    -1)
+            sstate (if-not (= -1 delay*)
+                    (get-state-with-threshold (get thresholds "tweet-powertrack-delay") delay*)
                     "critical")]
                [{:service "tweet-delay"
                  :state sstate
-                 :metric delay}]))
+                 :metric delay*}]))
     ([] (delay{})))
