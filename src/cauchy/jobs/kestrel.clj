@@ -4,6 +4,8 @@
 (defn threshold
   [{:keys [warn crit comp] :as conf} metric]
   (cond
+   (nil? warn) "ok"
+   (nil? crit) "ok"
    (comp metric crit) "critical"
    (comp metric warn) "warning"
    :else "ok"))
@@ -38,6 +40,7 @@
   [stats stats-p queue period]
   (let [items (get-in stats [:gauges (mk-key queue "items")])
         age (get-in stats [:gauges (mk-key queue "age_msec")])
+        put-items (get-in stats [:counters (mk-key queue "put_items")])
         ;; default to 0 when there is no stats-period
         ;; because queue has just been created
         put (get-in stats-p [:counters (mk-key queue "put_items")] 0)
@@ -45,11 +48,12 @@
         put-rate (double (/ put period))
         get-rate (double (/ get period)) ]
     {"items" items "age" age
-     "put_rate" put-rate "get_rate" get-rate}))
+     "put_items" put-items "put_rate" put-rate "get_rate" get-rate}))
 
 (def default-thresholds
   {"age" {:warn 300000 :crit 900000 :comp >}
    "items" {:warn 10000 :crit 100000 :comp >}
+   "put_items" {:warn nil :crit nil :comp <}
    "put_rate" {:warn 0.5 :crit 0.01 :comp <}
    "get_rate" {:warn 0.5 :crit 0.01 :comp <}})
 
