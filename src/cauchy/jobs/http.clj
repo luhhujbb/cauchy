@@ -1,4 +1,5 @@
 (ns cauchy.jobs.http
+    (:import [java.net SocketException ConnectException SocketTimeoutException])
     (:require [clj-http.client :as http]))
 
 (def state (atom {:state "ok" :warn 0 :crit 0 :ok 0}))
@@ -28,7 +29,10 @@
  "retrieve url status"
   [{:keys [protocol host port path] :or {protocol "http" host "localhost" port "80" path "/"}}]
   (let [url (str protocol "://" host ":" port path)]
-    (http/get url {:throw-exceptions false})))
+  (try
+    (http/get url {:throw-exceptions false})
+    (catch Exception e
+      {:status "critical" :request-time -1}))))
 
 (defn http-health
  "Main http checker"
