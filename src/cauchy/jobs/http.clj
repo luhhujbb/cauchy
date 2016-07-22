@@ -32,7 +32,7 @@
   (try
     (http/get url {:throw-exceptions false})
     (catch Exception e
-      {:status "critical" :request-time -1}))))
+      {:status 500 :request-time -1}))))
 
 (defn http-health
  "Main http checker"
