@@ -22,8 +22,8 @@
 
 
 (def default-code-threshold
-  { "status-code" { :warn 400 :crit 500 :comp >}
-    "request-time" {:warn 1000 :crit 4000 :comp >}})
+  { "status-code" { :warn 400 :crit 500 :comp =}
+    "request-time" {:warn 1000 :crit 4000 :comp =}})
 
 (defn get-http-data
  "retrieve url status"
