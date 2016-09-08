@@ -107,3 +107,10 @@
      :or {host "127.0.0.1" port "8080"}}]
      (fetch-topologies host port))
   ([] (storm-topologies {})))
+
+(defn storm
+  ([{:keys [host port]
+     :or {host "127.0.0.1" port "8080"}
+     :as conf}]
+     (concat (storm-cluster conf) (storm-topologies conf)))
+  ([] (storm {})))
