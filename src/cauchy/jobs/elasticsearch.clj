@@ -1,23 +1,25 @@
 (ns cauchy.jobs.elasticsearch
   (:require [clj-http.client :as http]))
 
+(def hostname (.. java.net.InetAddress getLocalHost getHostName))
+
 (defn fetch-health
-  [{:keys [host port] :or {host "localhost" port 9200}}]
+  [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "//_cluster/health")]
     (:body (http/get url {:as :json}))))
 
 (defn fetch-stats
-  [{:keys [host port] :or {host "localhost" port 9200}}]
+  [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_stats?fielddata=true")]
     (:body (http/get url {:as :json}))))
 
 (defn fetch-local
-  [{:keys [host port] :or {host "localhost" port 9200}}]
+  [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_nodes/_local/stats")]
     (:body (http/get url {:as :json}))))
 
 (defn fetch-status
-  [{:keys [host port] :or {host "localhost" port 9200}}]
+  [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_status")]
     (:body (http/get url {:as :json}))))
 
