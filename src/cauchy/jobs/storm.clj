@@ -35,7 +35,6 @@
      {:service (str "topo." name ".bolt." (:boltId bolt) ".acked") :metric (:acked bolt)}
      {:service (str "topo." name ".bolt." (:boltId bolt) ".executed") :metric (:executed bolt)}
      {:service (str "topo." name ".bolt." (:boltId bolt) ".executors") :metric (:executors bolt)}
-     {:service (str "topo." name ".bolt." (:boltId bolt) ".acked" ) :metric (:acked bolt)}
      {:service (str "topo." name ".bolt." (:boltId bolt) ".failed") :metric (:failed bolt)}
      {:service (str "topo." name ".bolt." (:boltId bolt) ".capacity") :metric (Float/parseFloat (:capacity bolt))}
      {:service (str "topo." name ".bolt." (:boltId bolt) ".executeLatency") :metric (Float/parseFloat (:executeLatency bolt))}])
@@ -45,7 +44,6 @@
   [name spouts]
   (mapcat (fn [spout]
     [{:service (str "topo." name ".spout." (:spoutId spout) ".emitted") :metric (:emitted spout)}
-     {:service (str "topo." name ".spout." (:spoutId spout) ".acked") :metric (:acked spout)}
      {:service (str "topo." name ".spout." (:spoutId spout) ".transferred") :metric (:transferred spout)}
      {:service (str "topo." name ".spout." (:spoutId spout) ".executors") :metric (:executors spout)}
      {:service (str "topo." name ".spout." (:spoutId spout) ".acked" ) :metric (:acked spout)}
@@ -65,8 +63,8 @@
       (let [stat-name (s->u (:windowPretty stat))
             metrics
                     [{:service (str "topo." name ".stat." stat-name ".acked" ) :metric (:acked stat)}
-                     {:service (str "topo." name ".stat." stat-name ".emitted" ) :metric (:acked stat)}
-                     {:service (str "topo." name ".stat." stat-name ".failed" ) :metric (:acked stat)}
+                     {:service (str "topo." name ".stat." stat-name ".emitted" ) :metric (:emitted stat)}
+                     {:service (str "topo." name ".stat." stat-name ".failed" ) :metric (:failed stat)}
                      {:service (str "topo." name ".stat." stat-name ".transferred" ) :metric (:transferred stat)}
                      {:service (str "topo." name ".stat." stat-name ".completeLatency" ) :metric (Float/parseFloat (:completeLatency stat))}]]
           (if-not (= stat-name "All_time")
