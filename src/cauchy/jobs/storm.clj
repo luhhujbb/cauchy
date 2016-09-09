@@ -3,7 +3,6 @@
             [cheshire.core :refer :all]
             [clojure.string :as str]))
 
-
 (defn fetch-cluster-metrics
   [host port]
   (let [url (str "http://" host ":" port "/api/v1/cluster/summary")]
