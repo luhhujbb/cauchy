@@ -32,7 +32,7 @@
   [host port]
   (let [url (str "http://" host ":" port "/aws/stats/instance/type")
         resp (:body (try
-                (http/post url {:throw-exceptions false
+                (http/get url {:throw-exceptions false
                                 :as :json})
                 (catch Exception e
                   (log/info e)
