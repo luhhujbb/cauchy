@@ -27,6 +27,9 @@
      (fetch-inventory-stats host port tag filter))
   ([] (inventory-stats {})))
 
+(defn p->u
+  [string]
+  (str/replace string #"\." "_"))
 
 (defn fetch-aws-instance-type-stats
   [host port]
@@ -38,7 +41,7 @@
                   (log/info e)
                   {:body {:state "error"}})))]
     (if (= "success" (:state resp))
-        (into [](map (fn [[k v]] {:service (name k) :metric v}) (:data resp)))
+        (into [](map (fn [[k v]] {:service (p->u (name k)) :metric v}) (:data resp)))
         [])))
 
   (defn aws-instance-type-stats
