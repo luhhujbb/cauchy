@@ -38,9 +38,9 @@
   ([] (memory {})))
 
 (defn uptime
-  ([]
+  []
    (let [{:keys [uptime] :as data} (sig/os-uptime)]
-     [{:service "uptime" :metric uptime}])))
+     [{:service "uptime" :metric uptime}]))
 
 (defn swap
   ([{:keys [warn crit] :as conf :or {warn 80 crit 90}}]
