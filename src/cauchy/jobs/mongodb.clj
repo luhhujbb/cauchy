@@ -6,57 +6,57 @@
 (defn mongostatsastring []  
 	(:out (sh "bash" "-c" "echo \"JSON.stringify(db.runCommand( { serverStatus: 1, repl: 0, metrics: 0, locks: 0 } ))\" |sudo mongo --quiet --host mongodb-ns315134.dev.ovh.rtgi.eu" )))
 
-(def mongostatsasjson
+(defn mongostatsasjson []
 	(parse-string (mongostatsastring) true))
 
 (defn getOpCountersMetrics []
 	{
-		:opcounters_command	(get-in mongostatsasjson [:opcounters :command])
-		:opcounters_insert	(get-in mongostatsasjson [:opcounters :insert])
-		:opcounters_update	(get-in mongostatsasjson [:opcounters :update])
-		:opcounters_delete	(get-in mongostatsasjson [:opcounters :delete])
+		:opcounters_command	(get-in (mongostatsasjson) [:opcounters :command])
+		:opcounters_insert	(get-in (mongostatsasjson) [:opcounters :insert])
+		:opcounters_update	(get-in (mongostatsasjson) [:opcounters :update])
+		:opcounters_delete	(get-in (mongostatsasjson) [:opcounters :delete])
 	})
 
 (defn getGlobalLockMetrics []
 	{
-		:GlobalLock_currentQueue_writers (get-in mongostatsasjson [:globalLock :currentQueue :writers])
-		:GlobalLock_currentQueue_readers (get-in mongostatsasjson [:globalLock :currentQueue :readers])
-		:GlobalLock_activeClients_writers (get-in mongostatsasjson [:globalLock :activeClients :writers])
-		:GlobalLock_activeClients_readers (get-in mongostatsasjson [:globalLock :activeClients :readers])
+		:GlobalLock_currentQueue_writers (get-in (mongostatsasjson) [:globalLock :currentQueue :writers])
+		:GlobalLock_currentQueue_readers (get-in (mongostatsasjson) [:globalLock :currentQueue :readers])
+		:GlobalLock_activeClients_writers (get-in (mongostatsasjson) [:globalLock :activeClients :writers])
+		:GlobalLock_activeClients_readers (get-in (mongostatsasjson) [:globalLock :activeClients :readers])
 	})
 
 (defn getConnectionsMetrics []
 	{
-		:connections_available (get-in mongostatsasjson [:connections :available])
-		:connections_current (get-in mongostatsasjson [:connections :current])
+		:connections_available (get-in (mongostatsasjson) [:connections :available])
+		:connections_current (get-in (mongostatsasjson) [:connections :current])
 	})
 
 (defn getMemMetrics []
 	{
-		:mem_virtual (get-in mongostatsasjson [:mem :virtual])
-		:mem_resident (get-in mongostatsasjson [:mem :resident])
+		:mem_virtual (get-in (mongostatsasjson) [:mem :virtual])
+		:mem_resident (get-in (mongostatsasjson) [:mem :resident])
 	})
 
 (defn getWiredTigerConcurrentTransactionMetrics []
 	{
-		:wiredTiger_concurrentTransactions_read_available (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :read :available])
-		:wiredTiger_concurrentTransactions_read_out (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :read :out])
-		:wiredTiger_concurrentTransactions_write_available (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :write :available])
-		:wiredTiger_concurrentTransactions_write_out (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :write :out])
+		:wiredTiger_concurrentTransactions_read_available (get-in (mongostatsasjson) [:wiredTiger :concurrentTransactions :read :available])
+		:wiredTiger_concurrentTransactions_read_out (get-in (mongostatsasjson) [:wiredTiger :concurrentTransactions :read :out])
+		:wiredTiger_concurrentTransactions_write_available (get-in (mongostatsasjson) [:wiredTiger :concurrentTransactions :write :available])
+		:wiredTiger_concurrentTransactions_write_out (get-in (mongostatsasjson) [:wiredTiger :concurrentTransactions :write :out])
 	})
 
 (defn getWiredTigerCacheMetrics []
 	{
-		:wiredTiger_cache_bytes_currently_in_the_cache (get-in mongostatsasjson [:wiredTiger :cache (keyword "bytes currently in the cache")])
+		:wiredTiger_cache_bytes_currently_in_the_cache (get-in (mongostatsasjson) [:wiredTiger :cache (keyword "bytes currently in the cache")])
 	})
 
 (defn getAssertsMetrics []
 	{
-		:asserts_warning (get-in mongostatsasjson [:asserts :warning])
-		:asserts_msg (get-in mongostatsasjson [:asserts :msg])
-		:asserts_user (get-in mongostatsasjson [:asserts :user])
-		:asserts_rollovers (get-in mongostatsasjson [:asserts :rollovers])
-		:asserts_regular (get-in mongostatsasjson [:asserts :regular])
+		:asserts_warning (get-in (mongostatsasjson) [:asserts :warning])
+		:asserts_msg (get-in (mongostatsasjson) [:asserts :msg])
+		:asserts_user (get-in (mongostatsasjson) [:asserts :user])
+		:asserts_rollovers (get-in (mongostatsasjson) [:asserts :rollovers])
+		:asserts_regular (get-in (mongostatsasjson) [:asserts :regular])
 	})
 
 (defn mergeallstats []
