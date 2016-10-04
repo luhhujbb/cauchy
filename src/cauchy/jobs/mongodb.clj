@@ -3,70 +3,71 @@
             [clojure.string :as str])
   (:use [clojure.java.shell :only [sh]]))
 
-(def mongostatsastring  
+(defn mongostatsastring []  
 	(:out (sh "bash" "-c" "echo \"JSON.stringify(db.runCommand( { serverStatus: 1, repl: 0, metrics: 0, locks: 0 } ))\" |sudo mongo --quiet --host mongodb-ns315134.dev.ovh.rtgi.eu" )))
 
 (def mongostatsasjson
-	(parse-string mongostatsastring true))
+	(parse-string (mongostatsastring) true))
 
-(def getOpCountersMetrics 
-	(hash-map
+(defn getOpCountersMetrics []
+	{
 		:opcounters_command	(get-in mongostatsasjson [:opcounters :command])
 		:opcounters_insert	(get-in mongostatsasjson [:opcounters :insert])
 		:opcounters_update	(get-in mongostatsasjson [:opcounters :update])
 		:opcounters_delete	(get-in mongostatsasjson [:opcounters :delete])
-	))
+	})
 
-(def getGlobalLockMetrics
-	(hash-map
+(defn getGlobalLockMetrics []
+	{
 		:GlobalLock_currentQueue_writers (get-in mongostatsasjson [:globalLock :currentQueue :writers])
 		:GlobalLock_currentQueue_readers (get-in mongostatsasjson [:globalLock :currentQueue :readers])
 		:GlobalLock_activeClients_writers (get-in mongostatsasjson [:globalLock :activeClients :writers])
 		:GlobalLock_activeClients_readers (get-in mongostatsasjson [:globalLock :activeClients :readers])
-	))
+	})
 
-(def getConnectionsMetrics
-	(hash-map
+(defn getConnectionsMetrics []
+	{
 		:connections_available (get-in mongostatsasjson [:connections :available])
 		:connections_current (get-in mongostatsasjson [:connections :current])
-	))
+	})
 
-(def getMemMetrics
-	(hash-map
+(defn getMemMetrics []
+	{
 		:mem_virtual (get-in mongostatsasjson [:mem :virtual])
 		:mem_resident (get-in mongostatsasjson [:mem :resident])
-	))
+	})
 
-(def getWiredTigerConcurrentTransactionMetrics
-	(hash-map
+(defn getWiredTigerConcurrentTransactionMetrics []
+	{
 		:wiredTiger_concurrentTransactions_read_available (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :read :available])
 		:wiredTiger_concurrentTransactions_read_out (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :read :out])
 		:wiredTiger_concurrentTransactions_write_available (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :write :available])
 		:wiredTiger_concurrentTransactions_write_out (get-in mongostatsasjson [:wiredTiger :concurrentTransactions :write :out])
-	))
+	})
 
-(def getWiredTigerCacheMetrics
-	(hash-map
+(defn getWiredTigerCacheMetrics []
+	{
 		:wiredTiger_cache_bytes_currently_in_the_cache (get-in mongostatsasjson [:wiredTiger :cache (keyword "bytes currently in the cache")])
-	))
+	})
 
-(def getAssertsMetrics
-	(hash-map
+(defn getAssertsMetrics []
+	{
 		:asserts_warning (get-in mongostatsasjson [:asserts :warning])
 		:asserts_msg (get-in mongostatsasjson [:asserts :msg])
 		:asserts_user (get-in mongostatsasjson [:asserts :user])
 		:asserts_rollovers (get-in mongostatsasjson [:asserts :rollovers])
 		:asserts_regular (get-in mongostatsasjson [:asserts :regular])
-	))
+	})
 
-(def mergeallstats 
+(defn mergeallstats []
 	(merge 
-		getOpCountersMetrics 
-		getGlobalLockMetrics 
-		getConnectionsMetrics 
-		getWiredTigerConcurrentTransactionMetrics 
-		getWiredTigerCacheMetrics getMemMetrics 
-		getAssertsMetrics))
+		(getOpCountersMetrics) 
+		(getGlobalLockMetrics) 
+		(getConnectionsMetrics)
+		(getWiredTigerConcurrentTransactionMetrics)
+		(getWiredTigerCacheMetrics)
+		(getMemMetrics)
+		(getAssertsMetrics)))
 
 (defn mongodb-metrics [] 
 	(let [{:keys [:asserts_msg :asserts_regular :connections_current :asserts_user 
@@ -76,7 +77,7 @@
 				:GlobalLock_currentQueue_readers :GlobalLock_activeClients_writers :opcounters_delete
 				:opcounters_update :wiredTiger_concurrentTransactions_read_out :connections_available
 				:asserts_rollovers :asserts_warning :wiredTiger_concurrentTransactions_write_available
-				:mem_resident]} mergeallstats]
+				:mem_resident]} (mergeallstats)]
 		[
 		 {:service (str "asserts.msg") :metric asserts_msg }
 		 {:service (str "asserts.regular") :metric asserts_regular }
