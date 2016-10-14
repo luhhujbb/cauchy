@@ -92,7 +92,7 @@
               (virtual-volume-state? line) (let [state (virtual-volume-state? line)]
                                           (recur
                                             (rest lines)
-                                            (assoc-in mega-state [mega-adapter :virtual_volumes mega-vol :state] state)
+                                            (assoc-in mega-state [mega-adapter :virtual_volumes mega-vol :state] (str/lower-case state))
                                             mega-adapter
                                             mega-vol
                                             mega-drive))
@@ -121,7 +121,7 @@
               (drive-state? line) (let [st (drive-state? line)]
                                           (recur
                                             (rest lines)
-                                            (assoc-in mega-state [mega-adapter :virtual_volumes mega-vol :drives mega-drive :state] st)
+                                            (assoc-in mega-state [mega-adapter :virtual_volumes mega-vol :drives mega-drive :state] (str/lower-case st))
                                             mega-adapter
                                             mega-vol
                                             mega-drive))
@@ -154,3 +154,37 @@
             (shell/sh "sudo" path "-LdPDinfo" "-aALL" "-NoLog")
             (shell/sh path "-LdPDinfo" "-aALL" "-NoLog")))
     nil))
+
+(defn megacli-data->metrics
+  "Transform parsed megacli to metrics"
+  [data]
+  (mapcat (fn [[ka va]]
+              (concat [{:service (str (name ka) ".virtual_volume_nb" )
+                        :metric (:virtual_volume_nb va)}]
+              (mapcat (fn [[kv vv]]
+                        (concat [{:service (str (name ka) "." (name kv) ".drive_nb")
+                                  :metric (:drive_nb vv)}
+                                  {:service (str (name ka) "." (name kv) ".size")
+                                   :metric (:size vv)}
+                                  {:service (str (name ka) "." (name kv) ".state")
+                                   :state (if-not (= "optimal" (:state vv))
+                                            "critical"
+                                            "ok")}]
+                        (mapcat (fn [[kd vd]] [{:service (str (name ka) "." (name kv) "." (name kd) ".size")
+                                                :size (:size vd)}
+                                              {:service (str (name ka) "." (name kv) "." (name kd) ".state")
+                                               :state (if (= "online" (:state vd))
+                                                        "ok"
+                                                        (if (= "rebuild" (:state vd))
+                                                          "warning"
+                                                          "critical"))}]) (:drives vv)))) (:virtual_volumes va)))) data))
+
+
+(defn mega-raid-state
+  ([{:keys [sudo]
+     :or {sudo false}
+     :as conf}]
+     (let [raw-data (get-megacli-data sudo)
+           data (parse-megacli-data raw-data)]
+           (into [] (megacli-data->metrics data))))
+ ([] (mega-raid-state {})))
