@@ -1,5 +1,5 @@
 {:jobs
- {:akestrel {"process.kestrel" {:interval 20
+ {:kestrel {"process.kestrel" {:interval 20
                                :job-ns "cauchy.jobs.health"
                                :job-fn "process"
                                :args [{:pattern "kestrel_2.9.2-2.4.1.jar"
