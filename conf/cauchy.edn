@@ -1,5 +1,4 @@
 {:global {:logging-config "/Users/pguillebert/cauchy/conf/logging.xml"}
  :riemann {:host "localhost"}
  :defaults {:tags ["devel" "appfoo"]}
- :profiles [:base]
 }

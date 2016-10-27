@@ -67,8 +67,8 @@
     false)))
 
 (defn load-dir
-  "Do like load-file but with all clj or edn file in dir"
- [path]
+  "Do like load-file but with all clj or edn file in dir, optionaly exclude "
+ [path & [exclude-files]]
  (let [file-list (.listFiles (File. path))
        file-pattern #".*\.(?:clj|edn)"]
      (reduce (fn
@@ -78,34 +78,38 @@
               (filter
                 (fn [val](not (nil? val)))
                 (map
-                  (fn [file] (re-matches file-pattern (.getAbsolutePath file)))
+                  (fn [file]
+                    (when-not (some true? (map (fn[exclude] (.endsWith (.getAbsolutePath file) exclude)) exclude-files))
+                      (do (log/info "loading" (.getAbsolutePath file))
+                        (re-matches file-pattern (.getAbsolutePath file)))))
                   file-list)))))
 
 (defn load-conf
   "load all clojure files (edn or clj) and merge them into a single map"
   [conf-paths]
-    (let [files (str/split conf-paths #",")]
-      (reduce (fn [acc file-path]
-                (if (clj-or-edn? file-path)
-                  (merge-with merge acc (load-file file-path))
-                  (merge-with merge acc (load-dir file-path)))) {} files)))
+    (let [files (str/split conf-paths #",")
+          only-files (filter #(clj-or-edn? %) files)
+          dirs (filter #(not (clj-or-edn? %)) files)
+          conf (reduce
+                (fn [acc file-path]
+                    (do
+                      (log/info "loading" file-path)
+                      (merge-with merge acc (load-file file-path)))) {} only-files)]
+          (reduce (fn [acc file-path]
+                    (log/info "loading" file-path)
+                    (merge-with merge acc (load-dir file-path only-files))) conf dirs)
+      ))
 
 
 (defn start!
   "main start function"
   [conf]
-       (let [profiles (:profiles conf)
-             all-jobs (:jobs conf)
-             jobs (->> profiles
-                       (reduce (fn [acc profile]
-                                 (conj acc (get all-jobs profile)))
-                               [])
-                       (apply merge))
+       (let [jobs (into {} (vals (:jobs conf)))
              defaults (assoc (:defaults conf)
                         :host (.. java.net.InetAddress
                                   getLocalHost
                                   getHostName))]
-         (rn/init! conf)      
+         (rn/init! conf)
          (load-sigar-native)
          (log/info "Cauchy Service start with jobs" jobs)
 

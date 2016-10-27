@@ -1,0 +1,29 @@
+{:jobs
+ {:base
+  {"alive" {:interval 12
+            :active true
+            :job-fn (fn [] {:state "ok"})}
+
+   "load" {:interval 20
+           :job-ns "cauchy.jobs.health"
+           :job-fn "load-average"}
+
+   "memory" {:interval 20
+             :job-ns "cauchy.jobs.health"
+             :job-fn "memory"}
+
+   "swap" {:interval 20
+           :job-ns "cauchy.jobs.health"
+           :job-fn "swap"}
+
+   "disk" {:interval 20
+           :job-ns "cauchy.jobs.health"
+           :job-fn "disk"}
+
+   "disk_io" {:interval 20
+              :job-ns "cauchy.jobs.health"
+              :job-fn "disk-io"}
+
+   "net_bandwidth" {:interval 20
+                    :job-ns "cauchy.jobs.health"
+                    :job-fn "bandwidth"}}}}

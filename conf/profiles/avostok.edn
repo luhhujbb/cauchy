@@ -1,0 +1,16 @@
+{:jobs
+ {:vostok {"process.vostok" {:interval 20
+                             :job-ns "cauchy.jobs.health"
+                             :job-fn "process"
+                             :args [{:pattern "vostok.core"
+                                     :warn-cpu 350 :crit-cpu 500
+                                     :warn-mem 80 :crit-mem 90}]}
+
+           "load" {:interval 20
+                   :job-ns "cauchy.jobs.health"
+                   :job-fn "load-average"
+                   :args [{:thresholds {"load_1"  {:warn 10 :crit 12}
+                                        "load_5"  {:warn 8  :crit 10}
+                                        "load_15" {:warn 6  :crit 8}
+                                        }}]}
+           }}}

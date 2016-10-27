@@ -1,0 +1,22 @@
+{:jobs
+ {:kestrel {"process.kestrel" {:interval 20
+                               :job-ns "cauchy.jobs.health"
+                               :job-fn "process"
+                               :args [{:pattern "kestrel_2.9.2-2.4.1.jar"
+                                       :warn-cpu 40 :crit-cpu 70
+                                       :warn-mem 85 :crit-mem 90}]}
+
+            ;; Overrides base profile
+            "memory" {:interval 20
+                      :job-ns "cauchy.jobs.health"
+                      :job-fn "memory"
+                      :args [{:warn 85 :crit 90}]}
+
+            "kestrel_stats" {:interval 30
+                             :job-ns "cauchy.jobs.kestrel"
+                             :job-fn "kestrel-stats"
+                             :args [{:period 300
+									 :thresholds {"put_rate" {:warn 0.1}
+                                                  "get_rate" {:warn 0.1}}}]}
+
+            }}}
