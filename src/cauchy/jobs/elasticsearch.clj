@@ -23,6 +23,10 @@
   (let [url (str "http://" host ":" port "/_status")]
     (:body (http/get url {:as :json}))))
 
+(defn get_story []
+    (http/post "http://localhost:9200/_search"
+    {:body "{\"query\": {\"range\": {\"created\": {\"gt\": \"now-1m\" }}}}" :as :json}))
+
 (defn get-node-id
   [conf]
   (let [nodes-id (->> (fetch-local conf)
@@ -30,6 +34,15 @@
                       (keys))]
     (when (= 1 (count nodes-id))
       (name (first nodes-id)))))
+
+(defn getstoryhits 
+    ([{:keys [warn ok] :as conf :or {ok 100 warn 30}}]
+      (let [{{:keys [total]} :hits} ((get_story) :body) ]
+        (cond
+         (>= total ok ) (def status "ok") 
+         (>= total warn) (def status "warning")
+          :else (def status "critical"))
+       [{ :service (str "hits") :metric total :state status }])))
 
 (defn count-local-active-shards
   [conf]
