@@ -1,6 +1,7 @@
 (ns cauchy.jobs.health
   (:require [cauchy.jobs.utils :as utils]
             [clojure.string :as str]
+            [sigmund.commands.netusage :as signet]
             [sigmund.core :as sig])
   (:import [java.util ConcurrentModificationException]))
 
@@ -173,6 +174,22 @@
                {:warn w-warn :crit w-crit :comp >}
                write-io)}]))
   ([] (disk-io {})))
+
+;;; getting all interfaces name, excluding localhost one
+(defn listifasset []
+(disj (set (sig/net-if-names)) "lo" ))
+
+;;; picking bandwidth for each interface 
+(defn listbandwidthperinterface []
+	(let [x (listifasset) ] 
+		(apply list (map sig/net-if-usage x))))
+
+;;; main bandidth per interface function. Graph it with derivative and scaletosecond functions
+(defn bandwidthperif []
+	(vec(apply concat (map (fn [{:keys [rx-bytes tx-bytes name]}] 
+	[{:service (str name".rx-bytes") :state "ok" :metric rx-bytes }
+     {:service (str name".tx-bytes") :state "ok" :metric tx-bytes }]
+	) (listbandwidthperinterface) ))))
 
 (defn bandwidth
   ([{:keys [rx-warn rx-crit tx-warn tx-crit] :as conf
