@@ -5,7 +5,7 @@
 
 (defn fetch-health
   [{:keys [host port] :or {host hostname port 9200}}]
-  (let [url (str "http://" host ":" port "//_cluster/health")]
+  (let [url (str "http://" host ":" port "/_cluster/health")]
     (:body (http/get url {:as :json}))))
 
 (defn fetch-stats
@@ -68,7 +68,9 @@
   ([{:keys [host port] :as conf}]
    (let [{:keys [status active_shards
                  unassigned_shards relocating_shards
-                 initializing_shards active_primary_shards]
+                 initializing_shards active_primary_shards
+                 number_of_nodes number_of_data_nodes]
+                  
           :as health} (fetch-health conf)
          stats (fetch-stats conf)]
      [
@@ -78,6 +80,10 @@
        :metric (count-local-active-shards conf)}
       {:service "docs_in_cluster"
        :metric (get-in stats [:_all :primaries :docs :count])}
+      {:service "docs_deleted_count"
+       :metric (get-in stats [:_all :primaries :docs :deleted])}
+      {:service "cluster_size_in_bytes"
+       :metric (get-in stats [:_all :primaries :store :size_in_bytes])}
       {:service "fielddata_memory_size_in_bytes"
        :metric (get-in stats [:_all :total :fielddata :memory_size_in_bytes])}
       {:service "fielddata_evictions"
@@ -87,6 +93,8 @@
       {:service "relocating_shards" :metric relocating_shards}
       {:service "initializing_shards" :metric initializing_shards}
       {:service "active_primary_shards" :metric active_primary_shards}
+      {:service "number_of_nodes" :metric number_of_nodes}
+      {:service "number_of_data_nodes" :metric number_of_data_nodes}
       ]))
   ([] (elasticsearch-health {})))
 
