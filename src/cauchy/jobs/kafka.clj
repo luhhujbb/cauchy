@@ -23,5 +23,5 @@
   [{:keys [group] :as conf}]
   (vec (map #(let [m %]
            {:service (str group "." (:id m) ".lag")
-            :metric (:lag m)})
+            :metric (read-string (:lag m))})
          (get-consumer-lags group))))
