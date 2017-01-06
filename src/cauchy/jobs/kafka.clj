@@ -21,7 +21,7 @@
 
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
-  [(map #(let [m %]
+  (vec (map #(let [m %]
            {:service (str group "." (:id m) ".lag")
             :metric (:lag m)})
-         (get-consumer-lags group))])
+         (get-consumer-lags group))))
