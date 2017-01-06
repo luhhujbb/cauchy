@@ -20,7 +20,7 @@
   (parse-consumer-stats (exec-kafka-consumer-stats group)))
 
 (defn kafka-consumer-lags
-  [group]
+  [{:keys [group] :as conf}]
   [(map #(let [m %]
            {:service (str group "." (:id m) ".lag")
             :metric (:lag m)})
