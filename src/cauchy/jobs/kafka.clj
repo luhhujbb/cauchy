@@ -1,6 +1,7 @@
 (ns cauchy.jobs.kafka
   (:use [clojure.java.shell :only [sh]])
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.tools.logging :as log]))
 
 (defn exec-kafka-consumer-stats
   [group]
