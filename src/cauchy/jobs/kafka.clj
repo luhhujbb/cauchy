@@ -21,7 +21,10 @@
 
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
-  (vec (map #(let [m %]
-           {:service (str group "." (:id m) ".lag")
-            :metric (read-string (:lag m))})
-         (get-consumer-lags group))))
+  (try
+    (vec (map #(let [m %]
+                 {:service (str group "." (:id m) ".lag")
+                  :metric (read-string (:lag m))})
+              (get-consumer-lags group)))
+    (catch Exception e
+      (log/error "unexpected exception happened in kafka job: " e))))
