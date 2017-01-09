@@ -18,6 +18,6 @@
   (rc/send-event @rc msg))
 
 (defn close!
-  [msg]
+  []
   (rc/close! @rc)
   (reset! rc nil))
