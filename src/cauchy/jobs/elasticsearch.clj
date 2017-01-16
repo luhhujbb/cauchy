@@ -49,7 +49,7 @@
   (when-let [node-id (get-node-id conf)]
     (let [status (fetch-recovery conf)
           shard-infos (for [index (keys status)
-                            shard-num (keys (get-in status [index :shards]))]
+                            shard-num (range 0 (count (get-in status [index :shards])))]
                         (get-in status [index :shards shard-num]))]
 
       (reduce (fn [acc info]
