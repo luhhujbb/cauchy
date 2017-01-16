@@ -18,9 +18,9 @@
   (let [url (str "http://" host ":" port "/_nodes/_local/stats")]
     (:body (http/get url {:as :json}))))
 
-(defn fetch-status
+(defn fetch-recovery
   [{:keys [host port] :or {host hostname port 9200}}]
-  (let [url (str "http://" host ":" port "/_status")]
+  (let [url (str "http://" host ":" port "/_recovery")]
     (:body (http/get url {:as :json}))))
 
 (defn get_story []
@@ -35,11 +35,11 @@
     (when (= 1 (count nodes-id))
       (name (first nodes-id)))))
 
-(defn getstoryhits 
+(defn getstoryhits
     ([{:keys [warn ok] :as conf :or {ok 100 warn 30}}]
       (let [{{:keys [total]} :hits} ((get_story) :body) ]
         (cond
-         (>= total ok ) (def status "ok") 
+         (>= total ok ) (def status "ok")
          (>= total warn) (def status "warning")
           :else (def status "critical"))
        [{ :service (str "hits") :metric total :state status }])))
@@ -47,13 +47,13 @@
 (defn count-local-active-shards
   [conf]
   (when-let [node-id (get-node-id conf)]
-    (let [status (fetch-status conf)
-          shard-infos (for [index (keys (:indices status))
-                            shard-num (keys (get-in status [:indices index :shards]))]
-                        (get-in status [:indices index :shards shard-num]))]
+    (let [status (fetch-recovery conf)
+          shard-infos (for [index (keys status)
+                            shard-num (keys (get-in status [index :shards]))]
+                        (get-in status [index :shards shard-num]))]
 
       (reduce (fn [acc info]
-                (if (= node-id (get-in info [:routing :node]))
+                (if (= node-id (get-in info [:target :id]))
                   (inc acc)
                   acc))
               0
@@ -70,7 +70,7 @@
                  unassigned_shards relocating_shards
                  initializing_shards active_primary_shards
                  number_of_nodes number_of_data_nodes]
-                  
+
           :as health} (fetch-health conf)
          stats (fetch-stats conf)]
      [
