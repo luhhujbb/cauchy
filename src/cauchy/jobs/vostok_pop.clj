@@ -20,7 +20,10 @@
    "retrieve url status"
     [{:keys [protocol host port] :or {protocol "http" host "localhost" port "8142" }}]
     (let [url (str protocol "://" host ":" port "/tweet-avg-delay")
-          resp (http/get url {:as :json :throw-exceptions false})]
+          resp (try
+                 (http/get url {:as :json :throw-exceptions false})
+                 (catch Exception e
+                   {:status 500}))]
           (if (= 200 (:status resp))
             (get (:body resp) :tweet-delay -1)
             -1)))
@@ -39,4 +42,4 @@
                [{:service "tweet-delay"
                  :state sstate
                  :metric delay*}]))
-    ([] (delay{})))
+    ([] (doc-delay {})))

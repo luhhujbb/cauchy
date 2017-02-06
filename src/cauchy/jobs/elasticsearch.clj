@@ -6,26 +6,33 @@
 (defn fetch-health
   [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_cluster/health")]
-    (:body (http/get url {:as :json}))))
+    (:body (try (http/get url {:as :json})
+              (catch Exception e
+                {:body {:error true}})))))
 
 (defn fetch-stats
   [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_stats?fielddata=true")]
-    (:body (http/get url {:as :json}))))
+    (:body (try (http/get url {:as :json})
+    (catch Exception e
+      {:body {:error true}})))))
 
 (defn fetch-local
   [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_nodes/_local/stats")]
-    (:body (http/get url {:as :json}))))
+    (:body (try (http/get url {:as :json})(catch Exception e
+      {:body {:error true :nodes {}}})))))
 
 (defn fetch-recovery
   [{:keys [host port] :or {host hostname port 9200}}]
   (let [url (str "http://" host ":" port "/_recovery")]
-    (:body (http/get url {:as :json}))))
+    (:body (try (http/get url {:as :json})(catch Exception e
+      {:body {:error true}})))))
 
 (defn get_story []
-    (http/post "http://localhost:9200/_search"
-    {:body "{\"query\": {\"range\": {\"created\": {\"gt\": \"now-1m\" }}}}" :as :json}))
+    (try (http/post "http://localhost:9200/_search"
+    {:body "{\"query\": {\"range\": {\"created\": {\"gt\": \"now-1m\" }}}}" :as :json})(catch Exception e
+      {:body {:error true}})))
 
 (defn get-node-id
   [conf]
@@ -37,12 +44,15 @@
 
 (defn getstoryhits
     ([{:keys [warn ok] :as conf :or {ok 100 warn 30}}]
-      (let [{{:keys [total]} :hits} ((get_story) :body) ]
-        (cond
-         (>= total ok ) (def status "ok")
-         (>= total warn) (def status "warning")
-          :else (def status "critical"))
-       [{ :service (str "hits") :metric total :state status }])))
+      (let [{{:keys [total]} :hits error :error} (:body (get_story))]
+        (if-not error
+          [{:service (str "hits")
+            :metric total
+            :state (cond
+                      (>= total ok ) "ok"
+                      (>= total warn) "warning"
+                      :else "critical")}]
+          []))))
 
 (defn count-local-active-shards
   [conf]
@@ -73,6 +83,7 @@
 
           :as health} (fetch-health conf)
          stats (fetch-stats conf)]
+    (if-not (or (:error health) (:error stats))
      [
       ;;Cluster metrics
       {:service "color" :state (color->state status)}
@@ -95,12 +106,15 @@
       {:service "active_primary_shards" :metric active_primary_shards}
       {:service "number_of_nodes" :metric number_of_nodes}
       {:service "number_of_data_nodes" :metric number_of_data_nodes}
-      ]))
+      ]
+      [])))
   ([] (elasticsearch-health {})))
 
 (defn elasticsearch-node-stats
     ([{:keys [host port] :as conf}]
-      (let [ [node-id node-stats] (first (get-in (fetch-local conf) [:nodes]))]
+      (let [local (fetch-local conf)]
+        (if-not (:error local)
+            (let [[node-id node-stats] (first (get-in local [:nodes]))]
         (vec (concat [
         ;;Node indices metrics
         {:service "indices.indexing.total" :metric (get-in node-stats [:indices :indexing :index_total])}
@@ -132,6 +146,7 @@
           ) (get-in node-stats [:thread_pool])
         )
         ))
-      ))
+      )
+      [])))
   ([] (elasticsearch-node-stats {}))
 )
