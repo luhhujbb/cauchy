@@ -12,7 +12,7 @@
 
 (defn fetch-stats
   [{:keys [host port] :or {host hostname port 9200}}]
-  (let [url (str "http://" host ":" port "/_stats?fielddata=true")]
+  (let [url (str "http://" host ":" port "/_stats")]
     (:body (try (http/get url {:as :json})
     (catch Exception e
       {:body {:error true}})))))
