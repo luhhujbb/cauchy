@@ -5,7 +5,7 @@
 
 (defn exec-kafka-consumer-stats
   [group]
-  (:out (sh "bash" "-c" (format "CHDIR=/rtgi/ext/kafka/bin/ /rtgi/ext/kafka/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server kafka-10-a.prod.aws.rtgi.eu:9092 --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'" group))))
+  (:out (sh "bash" "-c" (format "CHDIR=/rtgi/ext/kafka/bin/ /rtgi/ext/kafka/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server localhost:9092 --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'" group))))
 
 (defn keywordize-consumer-stats
   [parsed-stats]
