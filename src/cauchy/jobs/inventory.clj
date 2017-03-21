@@ -33,7 +33,7 @@
 
 (defn fetch-aws-instance-type-stats
   [host port]
-  (let [url (str "http://" host ":" port "/aws/stats/instance/type")
+  (let [url (str "http://" host ":" port "/aws/stats/ec2/type")
         resp (:body (try
                 (http/get url {:throw-exceptions false
                                 :as :json})
