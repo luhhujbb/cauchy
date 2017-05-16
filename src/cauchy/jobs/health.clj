@@ -179,14 +179,14 @@
 (defn listifasset []
 (disj (set (sig/net-if-names)) "lo" ))
 
-;;; picking bandwidth for each interface 
+;;; picking bandwidth for each interface
 (defn listbandwidthperinterface []
-	(let [x (listifasset) ] 
+	(let [x (listifasset) ]
 		(apply list (map sig/net-if-usage x))))
 
 ;;; main bandidth per interface function. Graph it with derivative and scaletosecond functions
 (defn bandwidthperif []
-	(vec(apply concat (map (fn [{:keys [rx-bytes tx-bytes name]}] 
+	(vec(apply concat (map (fn [{:keys [rx-bytes tx-bytes name]}]
 	[{:service (str name".rx-bytes") :state "ok" :metric rx-bytes }
      {:service (str name".tx-bytes") :state "ok" :metric tx-bytes }]
 	) (listbandwidthperinterface) ))))

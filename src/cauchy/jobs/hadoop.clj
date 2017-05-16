@@ -7,7 +7,11 @@
   "Generic method to fetch jmx metrics"
   [{:keys [host port]}]
     (let [url (str "http://" host ":" port "/jmx")]
-        (:body (http/get url {:as :json}))))
+        (:body
+          (try
+            (http/get url {:as :json})
+            (catch Exception e
+              {:body {:error true}})))))
 
 (defn filter-stats
   "retrieve a beans from a jmx json"
@@ -38,8 +42,10 @@
 
  (defn namenode
    ([{:keys [host port period] :or {host "localhost" port 50070} :as conf}]
-   (let [metrics (fetch-metrics conf)
-         input-namenode (filter-stats metrics "Hadoop:service=NameNode,name=NameNodeInfo")
-         input-jvm (filter-stats metrics "Hadoop:service=NameNode,name=JvmMetrics")]
-   (into [] (concat (namenode-cluster-info input-namenode) (jvm-state input-jvm)))))
+   (let [metrics (fetch-metrics conf)]
+      (if-not (:error metrics)
+        (let [input-namenode (filter-stats metrics "Hadoop:service=NameNode,name=NameNodeInfo")
+              input-jvm (filter-stats metrics "Hadoop:service=NameNode,name=JvmMetrics")]
+              (into [] (concat (namenode-cluster-info input-namenode) (jvm-state input-jvm))))
+        [])))
    ([] namenode {}))

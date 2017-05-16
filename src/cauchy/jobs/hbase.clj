@@ -11,7 +11,11 @@
   "Generic method to fetch jmx metrics"
   [{:keys [host port]}]
     (let [url (str "http://" host ":" port "/jmx")]
-        (:body (http/get url {:as :json}))))
+      (:body
+        (try
+          (http/get url {:as :json})
+          (catch Exception e
+            {:body {:error true}})))))
 
 (defn filter-stats
   "A retrieve a specific bean from a jmx json"
@@ -50,10 +54,12 @@
 
 (defn master
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
-  (let [metrics (fetch-metrics conf)
-        input-master (filter-stats metrics "Hadoop:service=HBase,name=Master,sub=Server")
-        input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
-  (into [] (concat (master-cluster-state input-master period) (jvm-state input-jvm period)))))
+  (let [metrics (fetch-metrics conf)]
+    (if-not (:error metrics)
+        (let [input-master (filter-stats metrics "Hadoop:service=HBase,name=Master,sub=Server")
+              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
+          (into [] (concat (master-cluster-state input-master period) (jvm-state input-jvm period))))
+          [])))
   ([] master {}))
 
 
@@ -77,8 +83,10 @@
 
 (defn regionserver
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
-  (let [metrics (fetch-metrics conf)
-        input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
-        input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
-  (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period)))))
+  (let [metrics (fetch-metrics conf)]
+    (if-not (:error metrics)
+        (let [input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
+              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
+          (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period))))
+          [])))
   ([] regionserver {}))

@@ -45,7 +45,10 @@
             ev-seq (periodic/periodic-seq
                     startdate
                     (time/seconds interval))
-            stopfn (chime/chime-at ev-seq (fn [time] (job-fn)))]
+            stopfn (chime/chime-at ev-seq (fn [time] (try
+                                                        (job-fn)
+                                                          (catch Exception e
+                                                            (log/error "Error in job :" label "-" e)))))]
         ;; add feed to registry
         (swap! job-registry assoc label stopfn)
         (log/info "added job" label)))))
