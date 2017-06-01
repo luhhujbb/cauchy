@@ -1,7 +1,7 @@
 (ns cauchy.jobs.health
   (:require [cauchy.jobs.utils :as utils]
+            [clojure.tools.logging :as log]
             [clojure.string :as str]
-            [sigmund.commands.netusage :as signet]
             [sigmund.core :as sig])
   (:import [java.util ConcurrentModificationException]))
 
@@ -182,7 +182,10 @@
 ;;; picking bandwidth for each interface
 (defn listbandwidthperinterface []
 	(let [x (listifasset) ]
-		(apply list (map sig/net-if-usage x))))
+		(apply list (map (fn [iname] (try
+                                    (sig/net-if-usage iname)
+                                    (catch Exception e
+                                      (log/error "[IFACE]" iname " - " e)))) x))))
 
 ;;; main bandidth per interface function. Graph it with derivative and scaletosecond functions
 (defn bandwidthperif []

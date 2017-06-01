@@ -50,7 +50,12 @@
           _ (require good-ns)
           func (ns-resolve good-ns (symbol func))]
       ;; return a thunk executing func using args
-      (fn [] (apply func args)))
+      (try
+        (fn []
+            (apply func args))
+              (catch Exception e
+                  (log/error "Fail to load jobs" myns func)
+                  (fn [] []))))
     ;; anonymous function defined in-line.
     (fn [] (apply (eval func) args))))
 
