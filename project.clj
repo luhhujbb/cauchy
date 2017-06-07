@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.44"
+(defproject cauchy "0.1.45"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
