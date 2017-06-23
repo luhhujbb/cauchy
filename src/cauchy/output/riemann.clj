@@ -1,5 +1,6 @@
 (ns cauchy.output.riemann
-  (:require [riemann.client :as rc])
+  (:require [riemann.client :as rc]
+            [clojure.tools.logging :as log])
   (:import (java.io IOException)))
 
 (def rc (atom nil))
@@ -15,7 +16,10 @@
     (try (rc/reconnect! @rc)
          (catch IOException e
            (rc/flush! @rc))))
-  (rc/send-event @rc msg))
+  (try
+    (rc/send-event @rc msg)
+    (catch Exception e
+      (log/error "[RIEMANN] connection error, can't send event" e))))
 
 (defn close!
   []
