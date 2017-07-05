@@ -30,7 +30,7 @@
       {:body {:error true}})))))
 
 (defn get_story []
-    (try (http/post "http://localhost:9200/_search"
+    (try (http/post (format "http://%s:9200/_search" hostname)
     {:body "{\"query\": {\"range\": {\"created\": {\"gt\": \"now-1m\" }}}}" :as :json})(catch Exception e
       {:body {:error true}})))
 
