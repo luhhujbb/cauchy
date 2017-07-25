@@ -8,9 +8,9 @@
 
 (defn haproxy-fetch-metrics
   "Get uberfeedr metrics"
-  [{:keys [host port] :or {host "localhost" port 443}}]
-    (let [url (str "https://pw" host ":" port "/haproxy-stats;csv")]
-        (:body (http/get url ))))
+  [{:keys [host port password] :or {host "localhost" port 443 password "admin:cl4rk3="}}]
+    (let [url (str "https://"password"@" host ":" port "/haproxy-stats;csv")]
+        (:body (http/get url {:insecure? true} ))))
 
 (defn extract-fields []
   (first (map (fn [field] (clojure.string/split field #"," )) 
