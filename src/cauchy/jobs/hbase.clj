@@ -66,8 +66,8 @@
 (defn regionserver-state
   [input period]
   (let [req-per-sec (per-sec region-last-req-count (:totalRequestCount input) period)
-        req-w-per-sec (per-sec last-w-req-count (:readRequestCount input) period)
-        req-r-per-sec (per-sec last-r-req-count (:writeRequestCount input) period)]
+        req-w-per-sec (per-sec last-w-req-count (:writeRequestCount input) period)
+        req-r-per-sec (per-sec last-r-req-count (:readRequestCount input) period)]
   [{:service "request_sec" :metric req-per-sec}
    {:service "read_request_sec" :metric req-r-per-sec}
    {:service "write_request_sec" :metric req-w-per-sec}
