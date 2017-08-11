@@ -28,12 +28,21 @@
                 [{:service (format "%s.%s.%s.committed" (str/replace gctype #" " "_") (name memory-type) (str/replace (name rubrique-gc)#" " "_")  ) :metric (:committed (:value vals-rubrique-gc))}
                 {:service (format "%s.%s.%s.max" (str/replace gctype #" " "_") (name memory-type) (str/replace (name rubrique-gc)#" " "_")) :metric (:max (:value vals-rubrique-gc))}
                 {:service (format "%s.%s.%s.used" (str/replace gctype #" " "_") (name memory-type) (str/replace (name rubrique-gc)#" " "_")) :metric (:used (:value vals-rubrique-gc))}])
-               vals-memory-type))
+               (select-keys vals-memory-type [(keyword "PS Eden Space") (keyword "PS Survivor Space") (keyword "PS Old Gen")] )))
            gc-details))))))
+
+(defn threads-stats [{:keys [host port] :or {host "localhost" port "9998"}}]
+     (jmx/with-connection {:host host, :port port}
+       (let [{:keys [ThreadCount PeakThreadCount DaemonThreadCount]} (select-keys (jmx/mbean "java.lang:type=Threading") [:ThreadCount :PeakThreadCount :DaemonThreadCount])]
+        [{:service (format "Threading.%s" (name 'ThreadCount)) :metric ThreadCount}
+         {:service (format "Threading.%s" (name 'PeakThreadCount)) :metric PeakThreadCount}
+         {:service (format "Threading.%s" (name 'DaemonThreadCount)) :metric DaemonThreadCount}])))
+
 
 (defn stats [{:keys [host port] :or {host "localhost" port "9998"}}]
   (into []
    (concat
-    (memory-stats {:host host :port port})
-    (gc-stats {:host host :port port :gctype "PS MarkSweep"})
-    (gc-stats {:host host :port port :gctype "PS Scavenge"}))))
+     (memory-stats {:host host :port port})
+     (gc-stats {:host host :port port :gctype "PS MarkSweep"})
+     (threads-stats {:host host :port port})
+     (gc-stats {:host host :port port :gctype "PS Scavenge"}))))
