@@ -142,8 +142,8 @@
         res* (if (= 1 (:exit res))
               (shell/sh "which" "megacli")
               res)
-        path (if (= 0 (:exit res))
-            (str/replace (:out res) #"\n" "")
+        path (if (= 0 (:exit res*))
+            (str/replace (:out res*) #"\n" "")
             nil  )]
    path))
 

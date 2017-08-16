@@ -1,7 +1,8 @@
 (ns cauchy.jobs.storcli
   (:require [clojure.java.shell :as shell]
             [clojure.string :as str]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clojure.tools.logging :as log]))
 
 (defn parse-string
   "Remove space and parenthesis from json keys, lowercase everything"
@@ -67,8 +68,8 @@
         res* (if (= 1 (:exit res))
               (shell/sh "which" "storcli")
               res)
-        path (if (= 0 (:exit res))
-            (str/replace (:out res) #"\n" "")
+        path (if (= 0 (:exit res*))
+            (str/replace (:out res*) #"\n" "")
             nil  )]
    path))
 
@@ -163,8 +164,8 @@
      {:service (str "c" cid ".virtual_drives") :metric (:virtual-drives data)}
      {:service (str "c" cid ".drive_groups") :metric (:drive-groups data)}
      {:service (str "c" cid ".status")
-      :metric (if (= "OK" (:controller-status)) 1 -1)
-      :state (if (= "OK" (:controller-status)) "ok" "warning")}]
+      :metric (if (= "OK" (:controller-status status)) 1 -1)
+      :state (if (= "OK" (:controller-status status)) "ok" "warning")}]
     (controller-data->virt-drives-metrics sudo cid (:vd-list data))
     (controller-data->roc-metrics cid (:hwcfg data))
     (controller-data->bbu-metrics cid (:bbu-info data)))))
@@ -189,6 +190,7 @@
            data (map
                   (fn [x]
                     (get-storcli-controller-data sudo (:ctl x)))
-                    adapters-summary)]
-           (into [] (storcli-data->metrics sudo data))))
+                    adapters-summary)
+           metrics (into [] (storcli-data->metrics sudo data))]
+           metrics))
  ([] (storcli-raid-state {})))
