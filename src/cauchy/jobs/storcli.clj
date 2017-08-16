@@ -27,6 +27,27 @@
        0
       :response-data]))
 
+(defn vdrive-state->riemann-state
+  [in]
+  (condp = in
+   "Optl" "ok"
+   "Pdgd" "warning"
+   "Rec" "warning"
+   "dgrd" "critical"
+   "OfLn" "critical"
+   "warning"))
+
+(defn pdrive-state->riemann-state
+[in]
+ (condp = in
+  "Onln" "ok"
+  "Offln" "critical"
+  "warning"))
+
+(def yes-no->riemann-state
+ {"Yes" "ok"
+  "No" "warning"})
+
 (defn ->byte-size
   [number unit]
   (condp = unit
@@ -34,6 +55,11 @@
     "MB" (Math/round (* 10000000 number))
     "GB" (Math/round (* 1000 1000000 number))
     "TB" (Math/round (* 1000000 1000000 number))))
+
+(defn get-bytes-nb
+  [in]
+  (let [[nb unit] (str/split in #" ")]
+    (->byte-size (Double/parseDouble nb) unit)))
 
 (defn get-storcli-cmd
   []
@@ -73,8 +99,11 @@
 
 (defn virt-drive-data->phy-drive-metrics
   [cid vdid data]
-  ;;TODO
-  )
+  (let [metric-path (str "c" cid ".v" vdid ".d" (:did data) ".")]
+  [{:service (str metric-path "state")
+    :state (pdrive-state->riemann-state (:state data))}
+   {:service (str metric-path "size")
+    :metric (get-bytes-nb (:size data))}]))
 
 (defn virt-drive-data->phy-drives-metrics
   [cid vdid data]
@@ -86,14 +115,23 @@
 (defn controller-data->virt-drive-metrics
   [sudo cid vdid data]
   (let [virt-drive-data (get-storcli-virtual-drive-data sudo cid vdid)
-        virt-drive-properties ((keyword (str "vd" vdid "-properties")) virt-drive-data)]
+        virt-drive-properties ((keyword (str "vd" vdid "-properties")) virt-drive-data)
+        phy-drive-kw (keyword (str "pds-for-vd-" vdid))
+        metric-path (str "c" cid ".v" vdid ".")]
     (concat
       ;;TODO
-      []
+      [{:service (str metric-path "state")
+        :state (vdrive-state->riemann-state (:state data))}
+       {:service (str metric-path "consistency")
+        :state (yes-no->riemann-state (:consist data))}
+       {:service (str metric-path "size")
+        :metric (get-bytes-nb (:size data))}
+       {:service (str metric-path "drive_nb")
+        :metric (count (phy-drive-kw virt-drive-data))}]
       (virt-drive-data->phy-drives-metrics
         cid
         vdid
-        ((keyword (str "pds-for-vd-" vdid)) virt-drive-data)))))
+        (phy-drive-kw virt-drive-data)))))
 
 (defn controller-data->virt-drives-metrics
   [sudo cid data]
