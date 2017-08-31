@@ -177,7 +177,7 @@
 
 ;;; getting all interfaces name, excluding localhost one
 (defn listifasset []
-(disj (set (sig/net-if-names)) "lo" ))
+ (set (sig/net-if-names)) )
 
 ;;; picking bandwidth for each interface
 (defn listbandwidthperinterface []
