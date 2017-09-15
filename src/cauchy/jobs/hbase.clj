@@ -81,7 +81,7 @@
    {:service "req.slow.append" :metric (:slowAppendCount input)}
    {:service "req.slow.put" :metric (:slowPutCount input)}
    {:service "queue.split.length" :metric (:splitQueueLength input)}
-   {:service "queue.compaction.lenght" :metric (:compactionQueueLength input)}
+   {:service "queue.compaction.length" :metric (:compactionQueueLength input)}
    {:service "queue.flush.length" :metric (:flushQueueLength input)}
    {:service "req.blocked.count" :metric (:blockedRequestCount input)}
    {:service "percent_files_local" :metric (:percentFilesLocal input)}
