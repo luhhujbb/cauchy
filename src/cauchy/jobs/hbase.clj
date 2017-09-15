@@ -81,12 +81,28 @@
    {:service "req.slow.append" :metric (:slowAppendCount input)}
    {:service "req.slow.put" :metric (:slowPutCount input)}]))
 
+(defn operating-system-state
+  [input period]
+  [{:service "open_files.max" :metric (:MaxFileDescriptorCount input)}
+   {:service "open_files.count" :metric (:OpenFileDescriptorCount input)}])
+
+(defn threading-state
+  [input period]
+  [{:service "thread.total_started" :metric (:TotalStartedThreadCount input)}
+   {:service "thread.count" :metric (:ThreadCount input)}
+   {:service "thread.peak_count" :metric (:PeakThreadCount input)}])
+
 (defn regionserver
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
   (let [metrics (fetch-metrics conf)]
     (if-not (:error metrics)
         (let [input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
-              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
-          (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period))))
+              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")
+              input-os (filter-stats metrics "java.lang:type=OperatingSystem")
+              input-threading (filter-stats metrics "java.lang:type=Threading")]
+          (into [] (concat (regionserver-state input-regionserver period)
+                            (jvm-state input-jvm period)
+                            (operating-system-state input-os period)
+                            (threading-state input-threading period))))
           [])))
   ([] regionserver {}))
