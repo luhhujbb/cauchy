@@ -79,7 +79,23 @@
    {:service "req.time.inc" :metric (:Increment_mean input)}
    {:service "req.slow.get" :metric (:slowGetCount input)}
    {:service "req.slow.append" :metric (:slowAppendCount input)}
-   {:service "req.slow.put" :metric (:slowPutCount input)}]))
+   {:service "req.slow.put" :metric (:slowPutCount input)}
+   {:service "queue.split.length" :metric (:splitQueueLength input)}
+   {:service "queue.compaction.lenght" :metric (:compactionQueueLength input)}
+   {:service "queue.flush.length" :metric (:flushQueueLength input)}
+   {:service "req.blocked.count" :metric (:blockedRequestCount input)}
+   {:service "percent_files_local" :metric (:percentFilesLocal input)}
+   {:service "store.count" :metric (:storeCount input)}
+   {:service "store.file.size" :metric (:storeCount input)}
+   {:service "store.file.index_size" :metric (:storeFileIndexSize input)}
+   {:service "store.mem.size" :metric (:memStoreSize input)}
+   {:service "store.hlog_file.size" :metric (:hlogFileSize input)}
+   {:service "store.hlog_file.count" :metric (:hlogFileCount input)}
+   {:service "cells.compacted.count" :metric (:compactedCellsCount input)}
+   {:service "cells.compacted.size" :metric (:compactedCellsSize input)}
+   {:service "cells.major_compacted.count" :metric (:majorCompactedCellsCount input)}
+   {:service "cells.major_compacted.size" :metric (:majorCompactedCellsSize input)}
+   ]))
 
 (defn operating-system-state
   [input period]
