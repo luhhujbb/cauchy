@@ -84,6 +84,9 @@
    {:service "queue.compaction.length" :metric (:compactionQueueLength input)}
    {:service "queue.flush.length" :metric (:flushQueueLength input)}
    {:service "req.blocked.count" :metric (:blockedRequestCount input)}
+   {:service "block_cache.size" :metric (:blockCacheSize input)}
+   {:service "block_cache.count" :metric (:blockCacheCount input)}
+   {:service "block_cache.free_size" :metric (:blockCacheFreeSize input)}
    {:service "percent_files_local" :metric (:percentFilesLocal input)}
    {:service "store.count" :metric (:storeCount input)}
    {:service "store.file.size" :metric (:storeCount input)}
