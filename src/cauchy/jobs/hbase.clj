@@ -79,14 +79,50 @@
    {:service "req.time.inc" :metric (:Increment_mean input)}
    {:service "req.slow.get" :metric (:slowGetCount input)}
    {:service "req.slow.append" :metric (:slowAppendCount input)}
-   {:service "req.slow.put" :metric (:slowPutCount input)}]))
+   {:service "req.slow.put" :metric (:slowPutCount input)}
+   {:service "queue.split.length" :metric (:splitQueueLength input)}
+   {:service "queue.compaction.length" :metric (:compactionQueueLength input)}
+   {:service "queue.flush.length" :metric (:flushQueueLength input)}
+   {:service "req.blocked.count" :metric (:blockedRequestCount input)}
+   {:service "block_cache.size" :metric (:blockCacheSize input)}
+   {:service "static_index.size" :metric (:staticIndexSize input)}
+   {:service "block_cache.count" :metric (:blockCacheCount input)}
+   {:service "block_cache.free_size" :metric (:blockCacheFreeSize input)}
+   {:service "percent_files_local" :metric (:percentFilesLocal input)}
+   {:service "store.count" :metric (:storeCount input)}
+   {:service "store.file.size" :metric (:storeCount input)}
+   {:service "store.file.index_size" :metric (:storeFileIndexSize input)}
+   {:service "store.mem.size" :metric (:memStoreSize input)}
+   {:service "store.hlog_file.size" :metric (:hlogFileSize input)}
+   {:service "store.hlog_file.count" :metric (:hlogFileCount input)}
+   {:service "cells.compacted.count" :metric (:compactedCellsCount input)}
+   {:service "cells.compacted.size" :metric (:compactedCellsSize input)}
+   {:service "cells.major_compacted.count" :metric (:majorCompactedCellsCount input)}
+   {:service "cells.major_compacted.size" :metric (:majorCompactedCellsSize input)}
+   ]))
+
+(defn operating-system-state
+  [input period]
+  [{:service "open_files.max" :metric (:MaxFileDescriptorCount input)}
+   {:service "open_files.count" :metric (:OpenFileDescriptorCount input)}])
+
+(defn threading-state
+  [input period]
+  [{:service "thread.total_started" :metric (:TotalStartedThreadCount input)}
+   {:service "thread.count" :metric (:ThreadCount input)}
+   {:service "thread.peak_count" :metric (:PeakThreadCount input)}])
 
 (defn regionserver
   ([{:keys [host port period] :or {host "localhost" port 16010} :as conf}]
   (let [metrics (fetch-metrics conf)]
     (if-not (:error metrics)
         (let [input-regionserver (filter-stats metrics "Hadoop:service=HBase,name=RegionServer,sub=Server")
-              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")]
-          (into [] (concat (regionserver-state input-regionserver period) (jvm-state input-jvm period))))
+              input-jvm (filter-stats metrics "Hadoop:service=HBase,name=JvmMetrics")
+              input-os (filter-stats metrics "java.lang:type=OperatingSystem")
+              input-threading (filter-stats metrics "java.lang:type=Threading")]
+          (into [] (concat (regionserver-state input-regionserver period)
+                            (jvm-state input-jvm period)
+                            (operating-system-state input-os period)
+                            (threading-state input-threading period))))
           [])))
   ([] regionserver {}))

@@ -4,12 +4,19 @@
             [clojure.tools.logging :as log]))
 
 (defn exec-kafka-consumer-stats
-  [group]
-  (:out (sh "bash" "-c" (format "/rtgi/ext/kafka/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server localhost:9092 --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'" group))))
+  [{:keys [bootstrap-server]
+    :or {bootstrap-server "kafka-10-a.prod.aws.rtgi.eu:9092"}
+    :as conf}
+   group]
+  (:out (sh "bash" "-c" (format (str "/rtgi/ext/kafka/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server " bootstrap-server " --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") group))))
 
 (defn exec-kafka-offset-checker
-  [topic group]
-  (:out (sh "bash" "-c" (format "/rtgi/ext/kafka/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper zookeeper-a.prod.aws.rtgi.eu,zookeeper-b.prod.aws.rtgi.eu,zookeeper-c.prod.aws.rtgi.eu:2181/kafka-10|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'" topic group))))
+  [{:keys [zookeeper]
+    :or {zookeeper "zookeeper-a.prod.aws.rtgi.eu,zookeeper-b.prod.aws.rtgi.eu,zookeeper-c.prod.aws.rtgi.eu:2181/kafka-10"}
+    :as conf}
+  topic
+  group]
+  (:out (sh "bash" "-c" (format (str "/rtgi/ext/kafka/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper " zookeeper "|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") topic group))))
 
 (defn keywordize-consumer-stats
   [parsed-stats]
@@ -21,18 +28,22 @@
    (map #(str/split % #",") (str/split-lines stats))))
 
 (defn get-consumer-lags
-  ([group]
-   (parse-consumer-stats (exec-kafka-consumer-stats group)))
-  ([topic group]
-   (parse-consumer-stats (exec-kafka-offset-checker topic group))))
+  ([conf group]
+   (parse-consumer-stats (exec-kafka-consumer-stats conf group)))
+  ([conf topic group]
+   (parse-consumer-stats (exec-kafka-offset-checker conf topic group))))
 
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
   (try
-    (vec (map #(let [m %]
-                 {:service (str group "." (:id m) ".lag")
-                  :metric (read-string (:lag m))})
-              (get-consumer-lags group)))
+    (vec (map #(let [ id (:id %)
+                      lag (if (= "unknown" (:lag %))
+                          -1
+                          (read-string (:lag %)))
+                     ]
+                 {:service (str group "." id ".lag")
+                  :metric lag})
+              (get-consumer-lags conf group)))
     (catch Exception e
       (log/error "unexpected exception happened in job kafka-consumer-lags (" group ") " e))))
 
@@ -42,9 +53,13 @@
 (defn kafka-consumer-offset-checker
   [{:keys [topic group] :as conf}]
   (try
-    (vec (map #(let [m %]
-                 {:service (str topic "." group "." (:id m) ".lag")
-                  :metric (read-string (:lag m))})
-              (get-consumer-lags topic group)))
+    (vec (map #(let [ id (:id %)
+                      lag (if (= "unknown" (:lag %))
+                          -1
+                          (read-string (:lag %)))
+                     ]
+                 {:service (str topic "." group "." id ".lag")
+                  :metric lag})
+              (get-consumer-lags conf topic group)))
     (catch Exception e
       (log/error "unexpected exception happened in job kafka-consumer-offset-checker (" group ") " e))))
