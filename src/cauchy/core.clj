@@ -8,7 +8,7 @@
             [clojure.string :as str])
   (:gen-class))
 
-(def locker (future "Cauchy successfully started"))
+(def running (atom true))
 
 (defn load-sigar-native
   []
@@ -102,8 +102,7 @@
                       (merge-with merge acc (load-file file-path)))) {} only-files)]
           (reduce (fn [acc file-path]
                     (log/info "loading" file-path)
-                    (merge-with merge acc (load-dir file-path only-files))) conf dirs)
-      ))
+                    (merge-with merge acc (load-dir file-path only-files))) conf dirs)))
 
 
 (defn start!
@@ -137,18 +136,22 @@
                         :job-fn job-fn})))
               (map sch/do-schedule)
               (doall))
-         (log/info @locker)
          (fn []
-           (sch/clear-scheduler)
-           (shutdown-agents))
-         ))
+           (swap! running not)
+           (sch/clear-scheduler))))
 
 (defn -main
   "main"
   ([conf-files]
      (let [stop-fn (start! (load-conf conf-files))]
-      (.addShutdownHook (Runtime/getRuntime)
-                       (proxy [Thread] []
-                         (run []
-                           (log/info "Shutting down everything")
-                           (stop-fn)))))))
+     (.addShutdownHook (Runtime/getRuntime)
+                      (proxy [Thread] []
+                        (run []
+                          (log/info "Shutting down everything")
+                          (stop-fn))))
+     (while @running
+       (try
+         ;;maintain main thread alive
+         (Thread/sleep 10000)
+          (catch java.lang.InterruptedException _
+            (swap! running not)))))))
