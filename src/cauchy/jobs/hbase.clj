@@ -1,11 +1,22 @@
 (ns cauchy.jobs.hbase
-  (:require [clj-http.client :as http]))
+  (:require [clj-http.client :as http]
+            [clojure.java.shell]))
 
 (def master-last-req-count (atom 0))
 (def region-last-req-count (atom 0))
 (def last-w-req-count (atom 0))
 (def last-r-req-count (atom 0))
 
+
+(defn fetch-tables-size []
+  (read-string
+   (:out (clojure.java.shell/sh "bash" "-c" "sudo -u hadoop /rtgi/ext/hadoop/bin/hdfs dfs -du -s /data/hbase/data/default/* | sort -n -k 1 | tr \"/\" \" \" |awk -F\" \" ' BEGIN {ORS = \"\"; print \"[\"} {print \" { :size \" $1 \" \" \":table \" $6 \" }\" } END { print \"]\"}'"))))
+
+(defn hbase-table-metrics []
+  (into []
+   (map (fn [x]
+      {:service (format ".%s.size_bytes" (:table x)) :metric (:size x)})
+   (fetch-tables-size ))))
 
 (defn fetch-metrics
   "Generic method to fetch jmx metrics"
