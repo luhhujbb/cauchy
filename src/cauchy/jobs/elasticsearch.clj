@@ -124,6 +124,10 @@
         {:service "indices.search.query_total" :metric (get-in node-stats [:indices :search :query_total])}
         {:service "indices.search.query_current" :metric (get-in node-stats [:indices :search :query_current])}
         {:service "indices.search.open_contexts" :metric (get-in node-stats [:indices :search :open_contexts])}
+        ;; process metrics
+        {:service "process.open_file_descriptors" :metric (get-in node-stats [:process :open_file_descriptors])}
+        {:service "process.max_file_descriptors" :metric (get-in node-stats [:process :max_file_descriptors])}
+        {:service "process.cpu.percent" :metric (get-in node-stats [:process :cpu :percent])}
         ;;Node jvm heap metrics
         {:service "jvm.heap.used_bytes" :metric (get-in node-stats [:jvm :mem :heap_used_in_bytes])}
         {:service "jvm.heap.used_pct" :metric (get-in node-stats [:jvm :mem :heap_used_percent])}
