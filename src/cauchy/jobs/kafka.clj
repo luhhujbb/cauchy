@@ -5,18 +5,20 @@
 
 (defn exec-kafka-consumer-stats
   [{:keys [bootstrap-server]
-    :or {bootstrap-server "kafka-10-a.prod.aws.rtgi.eu:9092"}
+    :or {bootstrap-server "kafka-10-a.prod.aws.rtgi.eu:9092"
+         kafka-path "/rtgi/ext/kafka"}
     :as conf}
    group]
-  (:out (sh "bash" "-c" (format (str "/rtgi/ext/kafka/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server " bootstrap-server " --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") group))))
+  (:out (sh "bash" "-c" (format (str path "/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server " bootstrap-server " --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") group))))
 
 (defn exec-kafka-offset-checker
   [{:keys [zookeeper]
-    :or {zookeeper "zookeeper-a.prod.aws.rtgi.eu,zookeeper-b.prod.aws.rtgi.eu,zookeeper-c.prod.aws.rtgi.eu:2181/kafka-10"}
+    :or {zookeeper "zookeeper-a.prod.aws.rtgi.eu,zookeeper-b.prod.aws.rtgi.eu,zookeeper-c.prod.aws.rtgi.eu:2181/kafka-10"
+         kafka-path "/rtgi/ext/kafka"}
     :as conf}
   topic
   group]
-  (:out (sh "bash" "-c" (format (str "/rtgi/ext/kafka/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper " zookeeper "|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") topic group))))
+  (:out (sh "bash" "-c" (format (str path "/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper " zookeeper "|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") topic group))))
 
 (defn keywordize-consumer-stats
   [parsed-stats]
