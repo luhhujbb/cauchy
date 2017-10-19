@@ -7,8 +7,7 @@
 
 (defn init!
   [conf]
-  (let [conf (:riemann conf)]
-      (reset! rc (rc/tcp-client conf))))
+    (reset! rc (rc/tcp-client conf)))
 
 (defn send!
   [msg]

@@ -5,6 +5,7 @@
             [indigenous.core :as indi]
             [cauchy.scheduler :as sch]
             [cauchy.output.riemann :as rn]
+            [cauchy.output.prometheus :as pt]
             [clojure.string :as str])
   (:gen-class))
 
@@ -112,8 +113,15 @@
              defaults (assoc (:defaults conf)
                         :host (.. java.net.InetAddress
                                   getLocalHost
-                                  getHostName))]
-         (rn/init! conf)
+                                  getHostName))
+            _ (cond
+                (:riemann conf) (rn/init! (:riemann conf))
+                (:prometheus conf) (pt/init! (:prometheus conf))
+                :else nil)
+            send (cond
+                  (:riemann conf) rn/send!
+                  (:prometheus conf) pt/send!
+                   :else (fn [event] nil))]
          (load-sigar-native)
          (log/info "Cauchy Service start with jobs" jobs)
 
@@ -126,7 +134,7 @@
                            job-fn #(try
                                      (->> (job-thunk)
                                           (format-output defaults label job)
-                                          (map rn/send!)
+                                          (map send)
                                           (doall))
                                      (catch Exception e
                                        (log/error e "Job" label "failed")))]
