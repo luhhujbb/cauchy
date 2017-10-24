@@ -110,10 +110,14 @@
   "main start function"
   [conf]
        (let [jobs (into {} (vals (:jobs conf)))
-             defaults (assoc (:defaults conf)
+             defaults* (assoc (:defaults conf)
                         :host (.. java.net.InetAddress
                                   getLocalHost
                                   getHostName))
+            defaults (cond
+                        (:riemann conf) (dissoc defaults* :labels)
+                        (:prometheus conf) (dissoc defaults* :tags)
+                        :else {})
             _ (cond
                 (:riemann conf) (rn/init! (:riemann conf))
                 (:prometheus conf) (pt/init! (:prometheus conf))

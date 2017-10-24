@@ -1,4 +1,11 @@
 {:global {:logging-config "/Users/pguillebert/cauchy/conf/logging.xml"}
  :riemann {:host "localhost"}
- :defaults {:tags ["devel" "appfoo"]}
+ :prometheus {:pushgateway "localhost:9091"}
+ :defaults {:tags ["devel" "appfoo"] ;;riemann style
+            :labels {
+              :app "my_app"
+              :env "prod"
+            } ;;prometheus style
+  }
+
 }
