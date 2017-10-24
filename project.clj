@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.64-SNAPSHOT"
+(defproject cauchy "0.1.64"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
@@ -20,6 +20,7 @@
                  [log4j/log4j "1.2.17"]
                  [log4j/apache-log4j-extras "1.2.17"]
                  [riemann-clojure-client "0.4.5"]
+                 [com.google.protobuf/protobuf-java  "2.6.1"]
                  [com.soundcloud/prometheus-clj "2.4.1"]
                  [jarohen/chime "0.1.9"]
                  [cheshire "5.5.0"]
