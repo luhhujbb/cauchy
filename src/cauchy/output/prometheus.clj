@@ -31,7 +31,7 @@
                           [:host :state])))
         labels-value (into []
                        (concat
-                         (keys (:labels msg))
+                         (vals (:labels msg))
                          [(:host msg) (:state msg)])) ]
         (when-not (get @metric-registry metric-name false)
           (prometheus/register-histogram @store namespace metric-name "" labels-name))
