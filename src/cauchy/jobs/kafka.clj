@@ -5,7 +5,7 @@
 
 (defn exec-kafka-consumer-stats
   [{:keys [bootstrap-server kafka-path]
-    :or {bootstrap-server "kafka-10-a.prod.aws.rtgi.eu:9092"
+    :or {bootstrap-server "localhost:9092"
          kafka-path "/rtgi/ext/kafka"}
     :as conf}
    group]
