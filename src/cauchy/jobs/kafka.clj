@@ -9,7 +9,9 @@
          kafka-path "/rtgi/ext/kafka"}
     :as conf}
    group]
-  (:out (sh "bash" "-c" (format (str kafka-path "/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server " bootstrap-server " --group %s --describe|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") group))))
+   (let[cmd (format (str kafka-path "/bin/kafka-consumer-groups.sh --new-consumer --bootstrap-server " bootstrap-server " --group %s --describe|tr -s ' '|sed -r 's/ /,/g'") group)]
+      (log/debug cmd)
+      (:out (sh "bash" "-c" cmd))))
 
 (defn exec-kafka-offset-checker
   [{:keys [zookeeper kafka-path]
@@ -18,22 +20,34 @@
     :as conf}
   topic
   group]
-  (:out (sh "bash" "-c" (format (str kafka-path "/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper " zookeeper "|tr -s ' '|cut -d ' ' -f 6,7,3|tail -n +2|sed 's/ /,/g'") topic group))))
+  (let[cmd (format (str kafka-path "/bin/kafka-consumer-offset-checker.sh --topic %s --group %s --zookeeper " zookeeper "|tr -s ' '|sed -r 's/ /,/g'") topic group)]
+    (log/debug cmd)
+    (:out (sh "bash" "-c" cmd))))
 
 (defn keywordize-consumer-stats
   [parsed-stats]
-  (map #(zipmap [:id :lag :owner] %) parsed-stats))
+  (map #(zipmap [:id :lag] %) parsed-stats))
 
 (defn parse-consumer-stats
-  [stats]
-  (keywordize-consumer-stats
-   (map #(str/split % #",") (str/split-lines stats))))
+  [stats partition-header-name lag-header-name]
+  (let[stats (map #(str/split % #",") (filter #(not= "" %) (str/split-lines stats)))
+
+      headers (first stats)
+      _ (log/debug "headers" headers)
+
+      partition-position (.indexOf headers partition-header-name)
+      lag-position (.indexOf headers lag-header-name)
+      _ (log/debug "position" partition-header-name partition-position lag-header-name lag-position)]
+
+    (keywordize-consumer-stats
+      (map #(let[_ (log/debug "parse-consumer-stats select on this line :" %)]
+            [(nth % partition-position) (nth % lag-position)]) (rest stats))) ))
 
 (defn get-consumer-lags
   ([conf group]
-   (parse-consumer-stats (exec-kafka-consumer-stats conf group)))
+   (parse-consumer-stats (exec-kafka-consumer-stats conf group) "PARTITION" "LAG"))
   ([conf topic group]
-   (parse-consumer-stats (exec-kafka-offset-checker conf topic group))))
+   (parse-consumer-stats (exec-kafka-offset-checker conf topic group) "Pid" "Lag")))
 
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
