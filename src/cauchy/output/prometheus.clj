@@ -34,7 +34,8 @@
                          (vals (:labels msg))
                          [(:host msg) (:state msg)])) ]
         (when-not (get @metric-registry metric-name false)
-          (prometheus/register-histogram @store namespace metric-name "" labels-name))
+          (prometheus/register-histogram @store namespace metric-name "" labels-name)
+          (swap! metric-registry metric-name true))
         (prometheus/track-observation @store namespace metric-name (:metric msg labels-value))
         (when (> (- (System/currentTimeMillis) @timer) 30000)
           (prometheus/push-metrics! @store "prometheus-cauchy-job")
