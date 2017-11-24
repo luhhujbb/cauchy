@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.68"
+(defproject cauchy "0.1.69"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
@@ -12,7 +12,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :signing {:gpg-key "93FEB8D7"}
   :deploy-repositories [["clojars" {:creds :gpg}]]
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.slf4j/slf4j-api "1.7.19"]
                  [org.slf4j/slf4j-log4j12 "1.7.19"]
@@ -29,6 +29,7 @@
                  [bultitude "0.2.8"]
                  [ring-server "0.5.0"]
                  [luhhujbb/sigmund "0.2.1" :exclusions [log4j sigar/sigar-native-deps]]
+                 [luhhujbb/hbase-admin "0.1.8"]
                  [clj-sockets "0.1.0"]
                  [org.clojure/java.jmx "0.3.4"]
                  [org.hyperic/sigar "1.6.5.132-6"]
