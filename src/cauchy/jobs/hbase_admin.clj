@@ -52,8 +52,9 @@
       (fn [[tk tv]]
         ;;map on metrics
         (map
-          (fn [k v]
-            {:service (str (name tk) "." (name k)) :metric v}) tv))
+          (fn [[k v]]
+            {:service (str (name tk) "." (name k)) :metric v})
+             tv))
             t-load))))
 
 (defn fetch-regionservers-tables-load
@@ -64,17 +65,17 @@
       (mapcat
         (fn [x]
           (let [server (first (str/split (:host x) #"\." 2))
-                t-load (:tables-load)]
+                t-load (:tables-load x)]
               ;;map on table
               (mapcat
                 (fn [[tk tv]]
                   ;;map on metrics
                   (map
-                    (fn [k v]
+                    (fn [[k v]]
                       {:service (str server "." (name tk) "." (name k)) :metric v})
                     tv))
-                  t-load))
-            rst-load)))))
+                  t-load)))
+          rst-load))))
 
 
 (defn cluster-basics
