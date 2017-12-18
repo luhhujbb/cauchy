@@ -15,7 +15,7 @@
 (defn send!
   [msg]
   (swap! msg-count inc)
-  (when (= 0 (mod msg-count (or (:nb-msg-before-reconnect r-conf) 50)))
+  (when (= 0 (mod @msg-count (or (:nb-msg-before-reconnect r-conf) 50)))
     ;;since this happen only on network issue, we accept loss of 50 msgs
     (when-not (r/connected? @rc)
       (try (r/reconnect! @rc)
