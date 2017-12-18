@@ -5,7 +5,7 @@
             [clj-time.periodic :as periodic]))
 
 (def job-registry (atom {}))
-(def fuzziness (atom 0.5))
+(def fuzziness (atom 0.8))
 
 (defn- check-call
   [{:keys [label active interval job-fn] :as job}]
