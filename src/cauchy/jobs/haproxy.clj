@@ -16,11 +16,11 @@
    (Integer. (re-find  #"\d+" s )))
 
 (defn haproxy-fetch-metrics
-  [host port password]
-    (let [url (str "https://"password"@" host ":" port "/haproxy-stats;csv")]
+  [protocol host port password]
+    (let [url (str protocol"://"password"@" host ":" port "/haproxy-stats;csv")]
         (:body (http/get url {:insecure? true} ))))
 
-(defn json-stats [host port password]
+(defn json-stats [protocol host port password]
 (remove nil?
 (map 
   (fn [x] 
@@ -38,9 +38,9 @@
           (drop 1 
           (map 
            (fn [x] (clojure.string/split x #"," )) 
-            (clojure.string/split (haproxy-fetch-metrics host port password) #"\n"))))))))
+            (clojure.string/split (haproxy-fetch-metrics protocol host port password) #"\n"))))))))
 
-(defn haproxy-backend-stats [host port password]
+(defn haproxy-backend-stats [protocol host port password]
  (vec 
     (map
        (fn [x]
@@ -50,9 +50,9 @@
           {:service (str pxname"."(clojure.string/replace svname #"\." "_")".status") 
             :state (cond (true? (= status "DOWN")) @state :else "ok") 
             :metric (cond (true? (or(= status "UP")(= status "OPEN")) ) 1 :else 0)}
-          ))(json-stats host port password))))
+          ))(json-stats protocol host port password))))
 
-(defn haproxy-global-stats [host port password]
+(defn haproxy-global-stats [protocol host port password]
   (into []
    (map
      (fn [[map nb_backend ]]
@@ -63,11 +63,11 @@
      (map 
        (fn [x] 
          (select-keys x [:status :pxname])) 
-           (into [] (json-stats host port password)))))))
+           (into [] (json-stats protocol host port password)))))))
 
-(defn haproxy-stats [{:keys [host port password] :or {host "localhost" port 443 password "notThisOne"}}]
+(defn haproxy-stats [{:keys [protocol host port password] :or {protocol "http" host "localhost" port 443 password "notThisOne"}}]
   (into []
     (concat
-      (haproxy-backend-stats host port password)
-      (haproxy-global-stats host port password))))
+      (haproxy-backend-stats protocol host port password)
+      (haproxy-global-stats protocol host port password))))
 
