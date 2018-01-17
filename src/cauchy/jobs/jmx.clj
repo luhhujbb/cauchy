@@ -56,12 +56,12 @@
    (into []
     (concat
     (memory-stats {:host host :port port})
+    (threads-stats {:host host :port port})
      (cond
       (= gc-type "G1GC")
        (gc-stats {:host host :port port :gctype "G1 Young Generation" :prefix-gc "G1"})
      :else
-       (do
-       (gc-stats {:host host :port port :gctype "PS MarkSweep" :prefix-gc "PS" })
-       (gc-stats {:host host :port port :gctype "PS Scavenge" :prefix-gc "PS" })))
-    (threads-stats {:host host :port port})
-     )))
+      (vec 
+        (mapcat 
+          (fn [gctype] (gc-stats {:host "172.31.55.42" :port "11080" :gctype gctype :prefix-gc "PS"})) 
+           ["PS Scavenge" "PS MarkSweep"]))))))
