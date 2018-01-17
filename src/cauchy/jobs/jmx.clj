@@ -63,5 +63,5 @@
      :else
       (vec 
         (mapcat 
-          (fn [gctype] (gc-stats {:host "172.31.55.42" :port "11080" :gctype gctype :prefix-gc "PS"})) 
+          (fn [gctype] (gc-stats {:host host :port port :gctype gctype :prefix-gc "PS"})) 
            ["PS Scavenge" "PS MarkSweep"]))))))
