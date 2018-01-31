@@ -15,7 +15,7 @@
   (filter (fn [x] (= tag (:tag x))) (:content xml-map)))
 
 (defn nvidia-smi
-  [file-path]
+  []
   (let [res (shell/sh "nvidia-smi" "-x" "-q")]
     (xml/parse (io/input-stream (.getBytes (remove-dtd (:out res)))))))
 
