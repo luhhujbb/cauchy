@@ -54,11 +54,14 @@
 
 (defn haproxy-global-stats [protocol host port password]
   (into []
-   (map
-     (fn [[map nb_backend ]]
-       {:service (str (:pxname map)"."(:status map)) 
+   (mapcat
+     (fn [[mymap nb_backend ]]
+      [{:service (str (:pxname mymap)"."(:status mymap)) 
         :state (cond (true? (= nb_backend 0)) "critical" :else "ok") 
-        :metric nb_backend})
+        :metric nb_backend}
+      (when-not (= "DOWN" (:status mymap)) 
+       {:service (str (:pxname mymap)".DOWN") :metric 0 :state "ok" })
+        ])
    (frequencies 
      (map 
        (fn [x] 
