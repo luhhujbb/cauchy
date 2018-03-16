@@ -86,11 +86,10 @@ that can be useful to others, I'll add you here.
 
 ## Configuration profiles
 
-The system is based on Trapperkeeper's configuration facilities. We have
-several profiles for different types of servers, and only profiles selected
-in the `:profiles` key of the configuration will be activated.
+Profiles are a set of checks. They are defined in a edn file which are loaded
+from directory given in arguments, like :
 
-There is a minimal configuration example in the `conf/` directory.
+    java -jar cauchy-standalone.jar /rtgi/conf/cauchy.edn,/rtgi/conf/cauchy-profiles
 
 #### Job definition
 
