@@ -53,7 +53,7 @@
   [{:keys [group] :as conf}]
   (try
     (vec (map #(let [ id (:id %)
-                      lag (if (= "unknown" (:lag %))
+                      lag (if (or (= "unknown" (:lag %)) (= "-" (:lag %)))
                           -1
                           (read-string (:lag %)))
                      ]
