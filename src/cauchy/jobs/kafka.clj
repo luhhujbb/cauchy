@@ -1,7 +1,18 @@
 (ns cauchy.jobs.kafka
   (:use [clojure.java.shell :only [sh]])
   (:require [clojure.string :as str]
+            [com.climate.claypoole :as cp]
             [clojure.tools.logging :as log]))
+
+(defn list-consumer-groups
+  [{:keys [bootstrap-server kafka-path]
+    :or {bootstrap-server "localhost:9092"
+         kafka-path "/rtgi/ext/kafka"}}]
+   (let[cmd (format "%s/bin/kafka-consumer-groups.sh --list --bootstrap-server %s" kafka-path bootstrap-server)]
+     (str/split 
+      (:out (sh "bash" "-c" cmd)) 
+     #"\n" )))
+   
 
 (defn exec-kafka-consumer-stats
   [{:keys [bootstrap-server kafka-path]
@@ -59,9 +70,16 @@
                      ]
                  {:service (str group "." id ".lag")
                   :metric lag})
-              (get-consumer-lags conf group)))
+             (get-consumer-lags conf group)))
     (catch Exception e
       (log/error "unexpected exception happened in job kafka-consumer-lags (" group ") " e))))
+
+(defn kafka-stats []
+ (apply concat
+  (cp/pmap (/ (.. Runtime getRuntime availableProcessors) 2)  (fn [group-id]
+   (kafka-consumer-lags {:group group-id})
+   )
+  (list-consumer-groups {}))))
 
 ;; Offset-checker is deprecated and we should use kafka-consumer-groups
 ;; with the new-consumer api. However to get the lags of a

@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.78"
+(defproject cauchy "0.1.80"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
@@ -25,6 +25,7 @@
                  [jarohen/chime "0.2.2"]
                  [cheshire "5.8.0"]
                  [clj-http "2.3.0"]
+                 [com.climate/claypoole "1.1.4"]
                  [indigenous "0.1.0"]
                  [bultitude "0.2.8"]
                  [ring-server "0.5.0"]
