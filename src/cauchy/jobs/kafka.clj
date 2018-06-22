@@ -37,10 +37,10 @@
 
 (defn keywordize-consumer-stats
   [parsed-stats]
-  (map #(zipmap [:topic :id :lag] %) parsed-stats))
+  (map #(zipmap [:topic :id :curoffset :lag] %) parsed-stats))
 
 (defn parse-consumer-stats
-  [stats topic-header-name partition-header-name lag-header-name]
+  [stats topic-header-name partition-header-name current-offset-header-name lag-header-name]
   (let[stats (map #(str/split % #",") (filter #(not= "" %) (str/split-lines stats)))
 
       headers (first stats)
@@ -49,29 +49,35 @@
       partition-position (.indexOf headers partition-header-name)
       topic-position (.indexOf headers topic-header-name)
       lag-position (.indexOf headers lag-header-name)
-      _ (log/debug "position" partition-header-name partition-position lag-header-name lag-position)]
+      offset-position (.indexOf headers current-offset-header-name)
+      _ (log/debug "position" partition-header-name partition-position offset-position lag-header-name lag-position)]
 
     (keywordize-consumer-stats
       (map #(let[_ (log/debug "parse-consumer-stats select on this line :" %)]
-            [(nth % topic-position) (nth % partition-position) (nth % lag-position)]) (rest stats))) ))
+            [(nth % topic-position) (nth % partition-position) (nth % offset-position) (nth % lag-position)]) (rest stats))) ))
 
 (defn get-consumer-lags
   ([conf group]
-   (parse-consumer-stats (exec-kafka-consumer-stats conf group) "TOPIC" "PARTITION" "LAG"))
+   (parse-consumer-stats (exec-kafka-consumer-stats conf group) "TOPIC" "PARTITION" "CURRENT-OFFSET" "LAG"))
   ([conf topic group]
    (parse-consumer-stats (exec-kafka-offset-checker conf topic group) "Pid" "Lag")))
 
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
   (try
-    (vec (map #(let [ id (:id %)
+    (apply concat (map #(let [ id (:id %)
                       topic (:topic %)
+                      currentoffset (:curoffset %)
                       lag (if (or (= "unknown" (:lag %)) (= "-" (:lag %)))
                           -1
                           (read-string (:lag %)))
                      ]
-                 {:service (str topic "." group "." id ".lag")
-                  :metric lag})
+              (when-not (= "-" topic)
+                 [{:service (str topic "." group "." id ".lag")
+                  :metric lag
+                  :currentoffset currentoffset}
+                  {:service (str topic "." group "." id ".current-offset")
+                  :metric currentoffset}]))
              (get-consumer-lags conf group)))
     (catch Exception e
       (log/error "unexpected exception happened in job kafka-consumer-lags (" group ") " e))))
