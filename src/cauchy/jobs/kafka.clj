@@ -65,20 +65,22 @@
 (defn kafka-consumer-lags
   [{:keys [group] :as conf}]
   (try
+   (vec
     (apply concat (map #(let [ id (:id %)
                       topic (:topic %)
-                      currentoffset (:curoffset %)
+                      currentoffset (if (= "-" (:curoffset %) ) 
+                                     0 
+                                     (read-string (:curoffset %)))
                       lag (if (or (= "unknown" (:lag %)) (= "-" (:lag %)))
                           -1
                           (read-string (:lag %)))
                      ]
               (when-not (= "-" topic)
                  [{:service (str topic "." group "." id ".lag")
-                  :metric lag
-                  :currentoffset currentoffset}
+                  :metric lag}
                   {:service (str topic "." group "." id ".current-offset")
                   :metric currentoffset}]))
-             (get-consumer-lags conf group)))
+             (get-consumer-lags conf group))))
     (catch Exception e
       (log/error "unexpected exception happened in job kafka-consumer-lags (" group ") " e))))
 
