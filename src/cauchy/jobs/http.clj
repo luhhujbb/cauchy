@@ -16,7 +16,7 @@
  "threshold comparator"
  [{:keys [warn crit comp] :as conf} metric]
  (cond
-  (comp metric crit) -1
+  (comp metric crit) 0
   (comp metric warn) 0
   :else 1))
 
