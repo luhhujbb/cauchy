@@ -3,7 +3,7 @@
             [clojure.tools.logging :as log]
             [clj-http.client :as http]))
 
-(defn- mark-as-whitelisted
+(defn mark-as-whitelisted
     [consumers whitelist]
     (loop [patterns (map re-pattern whitelist)
            consumers-whitelisted consumers]
@@ -16,12 +16,12 @@
                             consumers-whitelisted))
                 consumers-whitelisted)))
 
-(defn- remove-blacklisted
+(defn remove-blacklisted
     [consumers blacklist]
     (let [consumers-blacklisted (loop [patterns (map re-pattern blacklist)
                                        consumers-blacklisted consumers]
                                     (if-let [pattern (first patterns)]
-                                        (recur (rest pattern)
+                                        (recur (rest patterns)
                                             (remove
                                                 (fn [x]
                                                     (not (or (nil? (re-find pattern (:consumer x)))
