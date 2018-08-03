@@ -1,0 +1,15 @@
+image: container-registry.ovh.rtgi.eu:5000/gitlab-ci-lkf-ubuntu
+variables:
+  registry: container-registry.ovh.rtgi.eu
+
+before_script:
+- docker info
+
+build:
+  stage: build
+  only:
+    refs:
+      - master
+  script:
+  - lein with-profile repo do clean, uberjar
+  - find . -name "*-standalone.jar" -exec aws s3 cp {} s3://jarpot \;
