@@ -57,7 +57,7 @@
              [])))
 
 (defn extract-topic-aggregated-metrics [cluster consumer topic data]
-    (let [base-metric (str consumer "." topic)]
+    (let [base-metric (str topic "." consumer)]
     (try
     [(reduce
         (fn [acc x] (update acc :metric + (get-in x [:end :lag])))
@@ -76,7 +76,7 @@
             data))
 
 (defn extract-topic-partition-metrics [cluster consumer topic data]
-    (let [base-metric (str consumer "." topic ".partition" )]
+    (let [base-metric (str topic "." consumer ".partition" )]
     (remove
         (fn [x] (nil? (:metric x)))
         (concat
