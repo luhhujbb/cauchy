@@ -58,12 +58,16 @@
 
 (defn extract-topic-aggregated-metrics [cluster consumer topic data]
     (let [base-metric (str consumer "." topic)]
+    (try
     [(reduce
         (fn [acc x] (update acc :metric + (get-in x [:end :lag])))
         {:service (str base-metric ".totalLag") :metric 0} data)
         (reduce
         (fn [acc x] (update acc :metric + (get-in x [:end :offset])))
-        {:service (str base-metric ".totalOffset") :metric 0} data)]))
+        {:service (str base-metric ".totalOffset") :metric 0} data)]
+        (catch Exception e
+            (log/error "[" cluster "][" topic "][" consumer"] error aggregating data")
+            []))))
 
 (defn extract-consumer-aggregated-metrics [cluster consumer data]
     (mapcat
@@ -73,9 +77,12 @@
 
 (defn extract-topic-partition-metrics [cluster consumer topic data]
     (let [base-metric (str consumer "." topic ".partition" )]
-    (concat (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:end :lag])}) data)
+    (remove
+        (fn [x] (nil? (:metric x)))
+        (concat
+            (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:end :lag])}) data)
             (map (fn [x] {:service (str base-metric "." (:partition x) ".current-offset") :metric (get-in x [:end :offset])}) data)
-            (map (fn [x] {:service (str base-metric "." (:partition x) ".timestamp") :metric (get-in x [:end :timestamp])}) data))))
+            (map (fn [x] {:service (str base-metric "." (:partition x) ".timestamp") :metric (get-in x [:end :timestamp])}) data)))))
 
 (defn extract-consumer-partition-metrics [cluster consumer data]
     (mapcat
