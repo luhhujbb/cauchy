@@ -60,7 +60,7 @@
     (let [base-metric (str topic "." consumer)]
     (try
     [(reduce
-        (fn [acc x] (update acc :metric + (get-in x [:end :lag])))
+        (fn [acc x] (update acc :metric + (get-in x [:current_lag])))
         {:service (str base-metric ".totalLag") :metric 0} data)
         (reduce
         (fn [acc x] (update acc :metric + (get-in x [:end :offset])))
