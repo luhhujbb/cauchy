@@ -58,16 +58,12 @@
 
 (defn extract-topic-aggregated-metrics [cluster consumer topic data]
     (let [base-metric (str topic "." consumer)]
-    (try
     [(reduce
-        (fn [acc x] (update acc :metric + (get-in x [:current_lag])))
+        (fn [acc x] (update acc :metric + (get-in x [:current_lag] 0)))
         {:service (str base-metric ".totalLag") :metric 0} data)
         (reduce
-        (fn [acc x] (update acc :metric + (get-in x [:end :offset])))
-        {:service (str base-metric ".totalOffset") :metric 0} data)]
-        (catch Exception e
-            (log/error "[" cluster "][" topic "][" consumer"] error aggregating data")
-            []))))
+        (fn [acc x] (update acc :metric + (get-in x [:end :offset] 0)))
+        {:service (str base-metric ".totalOffset") :metric 0} data)]))
 
 (defn extract-consumer-aggregated-metrics [cluster consumer data]
     (mapcat
