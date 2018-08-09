@@ -80,7 +80,7 @@
     (remove
         (fn [x] (nil? (:metric x)))
         (concat
-            (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:end :lag])}) data)
+            (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:current_lag])}) data)
             (map (fn [x] {:service (str base-metric "." (:partition x) ".current-offset") :metric (get-in x [:end :offset])}) data)
             (map (fn [x] {:service (str base-metric "." (:partition x) ".timestamp") :metric (get-in x [:end :timestamp])}) data)))))
 
