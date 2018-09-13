@@ -1,4 +1,4 @@
-(defproject cauchy "0.1.91"
+(defproject cauchy "0.1.92"
   :description "Cauchy is an agent for Riemann"
   :url "https://github.com/pguillebert/cauchy"
   :scm {:name "git"
@@ -29,7 +29,7 @@
                  [indigenous "0.1.0"]
                  [bultitude "0.2.8"]
                  [ring-server "0.5.0"]
-                 [luhhujbb/sigmund "0.2.1" :exclusions [log4j sigar/sigar-native-deps]]
+                 [luhhujbb/sigmund "0.2.2" :exclusions [log4j sigar/sigar-native-deps]]
                  [luhhujbb/hbase-admin "0.1.8"]
                  [clj-sockets "0.1.0"]
                  [org.clojure/java.jmx "0.3.4"]
