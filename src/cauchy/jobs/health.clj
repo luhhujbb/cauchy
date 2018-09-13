@@ -30,15 +30,19 @@
 
 (defn cpu-usage
     ([{:keys [warn crit] :as conf :or {warn 80 crit 90}}]
-        (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as data} (sig/cpu-usage)]
-        [{:service "cpu.usage.nice" :metric nice}
-         {:service "cpu.usage.soft-irq" :metric soft-irq}
-         {:service "cpu.usage.idle" :metric idle}
-         {:service "cpu.usage.user" :metric user}
-         {:service "cpu.usage.sys" :metric sys}
-         {:service "cpu.usage.wait" :metric wait}
-         {:service "cpu.usage.irq" :metric irq}
-         {:service "cpu.usage.stolen" :metric stolen}]))
+        (let [data (sig/cpu-usage)]
+        (apply concat (map-indexed
+            (fn [idx val]
+                (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as core-data} val]
+                    [{:service (str "cpu.usage." idx ".nice") :metric nice}
+                    {:service (str "cpu.usage." idx ".soft-irq") :metric soft-irq}
+                    {:service (str "cpu.usage." idx ".user") :metric user}
+                    {:service (str "cpu.usage." idx ".idle") :metric idle}
+                    {:service (str "cpu.usage." idx ".sys") :metric sys}
+                    {:service (str "cpu.usage." idx ".wait") :metric wait}
+                    {:service (str "cpu.usage." idx ".irq") :metric irq}
+                    {:service (str "cpu.usage." idx ".stolen") :metric stolen}]))
+            data))))
     ([] (cpu-usage {})))
 
 (defn memory
