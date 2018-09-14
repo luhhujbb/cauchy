@@ -45,6 +45,76 @@
             data))))
     ([] (cpu-usage {})))
 
+(defn avg-core-usage
+    ([{:keys [warn crit] :as conf :or {warn 80 crit 90}}]
+        (let [data (sig/cpu-usage)
+              thread-count (count data)
+              avg-data (reduce
+                  (fn [acc val]
+                      (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as core-data} val]
+                          {:nice (+ (:nice acc) (/ nice thread-count))
+                           :soft-irq (+ (:soft-irq acc) (/ soft-irq thread-count))
+                           :idle (+ (:idle acc) (/ idle thread-count))
+                           :irq (+ (:irq acc) (/ irq thread-count))
+                           :user (+ (:user acc) (/ user thread-count))
+                           :sys (+ (:sys acc) (/ sys thread-count))
+                           :wait (+ (:wait acc) (/ wait thread-count))
+                           :stolen (+ (:stolen acc) (/ stolen thread-count))}))
+                {:nice 0.0
+                 :soft-irq 0.0
+                 :idle 0.0
+                 :irq 0.0
+                 :user 0.0
+                 :sys 0.0
+                 :wait 0.0
+                 :stolen 0.0}
+            data)]
+         (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as core-data} avg-data]
+                [{:service (str "core.usage.nice.avg") :metric (double nice)}
+                {:service (str "core.usage.soft-irq.avg") :metric (double soft-irq)}
+                {:service (str "core.usage.user.avg") :metric (double user)}
+                {:service (str "core.usage.idle.avg") :metric (double idle)}
+                {:service (str "core.usage.sys.avg") :metric (double sys)}
+                {:service (str "core.usage.wait.avg") :metric (double wait)}
+                {:service (str "core.usage.irq.avg") :metric (double irq)}
+                {:service (str "core.usage.stolen.avg") :metric (double stolen)}])))
+    ([] (avg-core-usage {})))
+
+(defn max-core-usage
+        ([{:keys [warn crit] :as conf :or {warn 80 crit 90}}]
+            (let [data (sig/cpu-usage)
+                      thread-count (count data)
+                      avg-data (reduce
+                          (fn [acc val]
+                              (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as core-data} val]
+                                  {:nice (max (:nice acc) nice)
+                                   :soft-irq (max (:soft-irq acc) soft-irq)
+                                   :idle (max (:idle acc) idle)
+                                   :irq (max (:irq acc) irq)
+                                   :user (max (:user acc) user)
+                                   :sys (max (:sys acc) sys)
+                                   :wait (max (:wait acc) wait)
+                                   :stolen (max (:stolen acc) stolen)}))
+                        {:nice 0.0
+                         :soft-irq 0.0
+                         :idle 0.0
+                         :irq 0.0
+                         :user 0.0
+                         :sys 0.0
+                         :wait 0.0
+                         :stolen 0.0}
+                    data)]
+                 (let [{:keys [nice soft-irq idle irq user sys wait stolen] :as core-data} avg-data]
+                        [{:service (str "cpu.usage.nice.max") :metric (double nice)}
+                        {:service (str "cpu.usage.soft-irq.max") :metric (double soft-irq)}
+                        {:service (str "cpu.usage.user.max") :metric (double user)}
+                        {:service (str "cpu.usage.idle.max") :metric (double idle)}
+                        {:service (str "cpu.usage.sys.max") :metric (double sys)}
+                        {:service (str "cpu.usage.wait.max") :metric (double  wait)}
+                        {:service (str "cpu.usage.irq.max") :metric (double irq)}
+                        {:service (str "cpu.usage.stolen.max") :metric (double stolen)}])))
+            ([] (max-core-usage {})))
+
 (defn memory
   ([{:keys [warn crit] :as conf :or {warn 80 crit 90}}]
    (let [{:keys [actual-used used-percent] :as data} (sig/os-memory)]
