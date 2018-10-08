@@ -41,7 +41,7 @@
    {:service "gc.avg_time" :metric (if-not (= 0 (:GcCount input)) (/ (:GcTimeMillis input) (:GcCount input)) 0)}])
 
  (defn namenode
-   ([{:keys [host port period] :or {host "localhost" port 50070} :as conf}]
+   ([{:keys [host port period] :or {host "localhost" port "50070"} :as conf}]
    (let [metrics (fetch-metrics conf)]
       (if-not (:error metrics)
         (let [input-namenode (filter-stats metrics "Hadoop:service=NameNode,name=NameNodeInfo")
@@ -51,7 +51,7 @@
    ([] namenode {}))
 
 (defn datanode
-  ([{:keys [host port period] :or {host "localhost" port 50075} :as conf}]
+  ([{:keys [host port period] :or {host "localhost" port "50075"} :as conf}]
   (let [metrics (fetch-metrics conf)]
       (if-not (:error metrics)
         (let [input-jvm (filter-stats metrics "Hadoop:service=DataNode,name=JvmMetrics")]
