@@ -55,6 +55,6 @@
   (let [metrics (fetch-metrics conf)]
       (if-not (:error metrics)
         (let [input-jvm (filter-stats metrics "Hadoop:service=DataNode,name=JvmMetrics")]
-              (into [] (concat (jvm-state input-jvm))))
+              (into [] (jvm-state input-jvm)))
         [])))
   ([] datanode {}))
