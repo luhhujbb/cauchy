@@ -49,3 +49,12 @@
               (into [] (concat (namenode-cluster-info input-namenode) (jvm-state input-jvm))))
         [])))
    ([] namenode {}))
+
+(defn datanode
+  ([{:keys [host port period] :or {host "localhost" port 50075} :as conf}]
+  (let [metrics (fetch-metrics conf)]
+      (if-not (:error metrics)
+        (let [input-jvm (filter-stats metrics "Hadoop:service=DataNode,name=JvmMetrics")]
+              (into [] (concat (jvm-state input-jvm))))
+        [])))
+  ([] datanode {}))
