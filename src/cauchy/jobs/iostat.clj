@@ -39,9 +39,11 @@
 
 (defn get-iostat
     "Time in second of report"
-    ([{:keys [window] :or {window 30 }}]
+    ([{:keys [window sudo] :or {window 30 }}]
         (if (> window 5)
-            (let [iostat-raw-res (shell/sh "iostat" "-yx" (str (- window 5)) "1")]
+            (let [iostat-raw-res (if sudo
+                                    (shell/sh "iostat" "-yx" (str (- window 5)) "1")
+                                    (shell/sh "sudo" "iostat" "-yx" (str (- window 5)) "1"))]
                 (iostat->metrics
                     (parse-iostat (:out iostat-raw-res))))
         []))
