@@ -8,15 +8,18 @@
 (def last-r-req-count (atom 0))
 
 
-(defn fetch-tables-size []
+(defn fetch-tables-size [hdfs-user hbase-hdfs-path hadoop-dir]
   (read-string
-   (:out (clojure.java.shell/sh "bash" "-c" "sudo -u hadoop /rtgi/ext/hadoop/bin/hdfs dfs -du -s /data/hbase/data/default/* | sort -n -k 1 | tr \"/\" \" \" |awk -F\" \" ' BEGIN {ORS = \"\"; print \"[\"} {print \" { :size \" $1 \" \" \":table \" $6 \" }\" } END { print \"]\"}'"))))
+   (:out (clojure.java.shell/sh "bash" "-c" (str "sudo -u " hdfs-user " " hadoop-dir "/bin/hdfs dfs -du -s " hbase-hdfs-path "/data/default/* | sort -n -k 1 | tr \"/\" \" \" |awk -F\" \" ' BEGIN {ORS = \"\"; print \"[\"} {print \" { :size \" $1 \" \" \":table \" $6 \" }\" } END { print \"]\"}'")))))
 
-(defn hbase-table-metrics []
+(defn hbase-table-metrics [{:keys [hdfs-user hbase-hdfs-path hadoop-dir]
+                            :or {hdfs-user "hdfs"
+                                 hbase-hdfs-path "/data/hbase"
+                                 hadoop-dir "/rtgi/ext/hadoop"}}]
   (into []
    (map (fn [x]
       {:service (format ".%s.size_bytes" (:table x)) :metric (:size x)})
-   (fetch-tables-size ))))
+   (fetch-tables-size hdfs-user hbase-hdfs-path hadoop-dir))))
 
 (defn fetch-metrics
   "Generic method to fetch jmx metrics"
