@@ -14,7 +14,7 @@ build:
   - lein with-profile repo do clean, uberjar
   - find . -name "*-standalone.jar" -exec aws s3 cp {} s3://jarpot \;
   
-build:
+build_aliyun:
   stage: build
   only:
     - /^aliyun.*$/
