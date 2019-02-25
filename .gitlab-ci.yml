@@ -13,3 +13,15 @@ build:
   script:
   - lein with-profile repo do clean, uberjar
   - find . -name "*-standalone.jar" -exec aws s3 cp {} s3://jarpot \;
+  
+build:
+  stage: build
+  only:
+    - /^aliyun.*$/
+  except:
+    - branches
+
+  script:
+  - lein with-profile repo do clean, uberjar
+  - find . -name "*-standalone.jar" -exec aliyun oss cp {} oss://linkfluence-jarpot \;
+
