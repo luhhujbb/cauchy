@@ -12,6 +12,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :signing {:gpg-key "93FEB8D7"}
   :deploy-repositories [["clojars" {:creds :gpg}]]
+  :plugins [[cider/cider-nrepl "0.16.0"]]
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [org.slf4j/slf4j-api "1.7.19"]
