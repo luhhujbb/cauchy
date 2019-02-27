@@ -57,46 +57,47 @@
              [])))
 
 (defn extract-topic-aggregated-metrics [cluster consumer topic data]
-    (let [base-metric (str topic "." consumer)]
+  (let [base-metric (str topic "." consumer)]
     [(reduce
-        (fn [acc x] (update acc :metric + (get-in x [:current_lag] 0)))
+      (fn [acc x] (update acc :metric + (get-in x [:current_lag] 0)))
         {:service (str base-metric ".totalLag") :metric 0} data)
-        (reduce
-        (fn [acc x] (update acc :metric + (get-in x [:end :offset] 0)))
-        {:service (str base-metric ".totalOffset") :metric 0} data)]))
+     (reduce
+      (fn [acc x] (update acc :metric + (get-in x [:end :offset] 0)))
+      {:service (str base-metric ".totalOffset") :metric 0} data)]))
 
 (defn extract-consumer-aggregated-metrics [cluster consumer data]
-    (mapcat
-        (fn [[topic v]]
-            (extract-topic-aggregated-metrics cluster consumer topic v))
-            data))
+  (mapcat
+   (fn [[topic v]]
+     (extract-topic-aggregated-metrics cluster consumer topic v))
+   data))
 
 (defn extract-topic-partition-metrics [cluster consumer topic data]
-    (let [base-metric (str topic "." consumer ".partition" )]
+  (let [base-metric (str topic "." consumer ".partition" )]
     (remove
-        (fn [x] (nil? (:metric x)))
-        (concat
-            (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:current_lag])}) data)
-            (map (fn [x] {:service (str base-metric "." (:partition x) ".current-offset") :metric (get-in x [:end :offset])}) data)
-            (map (fn [x] {:service (str base-metric "." (:partition x) ".timestamp") :metric (get-in x [:end :timestamp])}) data)))))
+     (fn [x] (nil? (:metric x)))
+     (concat
+      (map (fn [x] {:service (str base-metric "." (:partition x) ".lag") :metric (get-in x [:current_lag])}) data)
+      (map (fn [x] {:service (str base-metric "." (:partition x) ".current-offset") :metric (get-in x [:end :offset])}) data)
+      (map (fn [x] {:service (str base-metric "." (:partition x) ".owner") :metric (str/replace (get-in x [:owner]) #"[\/\.]" "-")}) data)
+      (map (fn [x] {:service (str base-metric "." (:partition x) ".timestamp") :metric (get-in x [:end :timestamp])}) data)))))
 
 (defn extract-consumer-partition-metrics [cluster consumer data]
-    (mapcat
-        (fn [[topic v]]
-            (extract-topic-partition-metrics cluster consumer topic v))
-            data))
+  (mapcat
+   (fn [[topic v]]
+     (extract-topic-partition-metrics cluster consumer topic v))
+   data))
 
 (defn extract-consumer-metrics [cluster consumer data]
-    (concat
-        (extract-consumer-aggregated-metrics cluster consumer data)
-        (extract-consumer-partition-metrics cluster consumer data)))
+  (concat
+   (extract-consumer-aggregated-metrics cluster consumer data)
+   (extract-consumer-partition-metrics cluster consumer data)))
 
 (defn kafka-metrics [{:keys [burrow cluster blacklist whitelist]
                       :or {blacklist [] whitelist []}
                       :as conf}]
-        (let [consumers (fetch-cluster-consumer burrow cluster blacklist whitelist)]
-            (mapcat
-                (fn [consumer]
-                    (let [consumer-data (fetch-consumer-lags burrow cluster consumer)]
-                        (extract-consumer-metrics cluster consumer consumer-data)))
-                consumers)))
+  (let [consumers (fetch-cluster-consumer burrow cluster blacklist whitelist)]
+    (mapcat
+     (fn [consumer]
+       (let [consumer-data (fetch-consumer-lags burrow cluster consumer)]
+         (extract-consumer-metrics cluster consumer consumer-data)))
+     consumers)))
