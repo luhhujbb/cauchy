@@ -18,7 +18,7 @@
 (defn parse-ping-loss
     [res]
     (let [loss-matcher (re-find (re-pattern "^.* ([0-9]{1,3})\\%.*$") res)]
-        {:service "ping.loss" :metric (last loss-matcher)}))
+        {:service "ping.loss" :metric (Integer/parseInt (last loss-matcher))}))
 
 (defn ping
     ([{:keys [host]
