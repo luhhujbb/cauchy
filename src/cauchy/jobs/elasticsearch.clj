@@ -90,15 +90,15 @@
       {:service "local_active_shards"
        :metric (count-local-active-shards conf)}
       {:service "docs_in_cluster"
-       :metric (get-in stats [:_all :primaries :docs :count])}
+       :metric (get-in stats [:_all :primaries :docs :count] 0)}
       {:service "docs_deleted_count"
-       :metric (get-in stats [:_all :primaries :docs :deleted])}
+       :metric (get-in stats [:_all :primaries :docs :deleted] 0)}
       {:service "cluster_size_in_bytes"
-       :metric (get-in stats [:_all :primaries :store :size_in_bytes])}
+       :metric (get-in stats [:_all :primaries :store :size_in_bytes] 0)}
       {:service "fielddata_memory_size_in_bytes"
-       :metric (get-in stats [:_all :total :fielddata :memory_size_in_bytes])}
+       :metric (get-in stats [:_all :total :fielddata :memory_size_in_bytes] 0)}
       {:service "fielddata_evictions"
-       :metric (get-in stats [:_all :total :fielddata :evictions])}
+       :metric (get-in stats [:_all :total :fielddata :evictions] 0)}
       {:service "active_shards" :metric active_shards}
       {:service "unassigned_shards" :metric unassigned_shards}
       {:service "relocating_shards" :metric relocating_shards}
